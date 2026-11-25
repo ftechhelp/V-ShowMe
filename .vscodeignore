@@ -28,3 +28,4 @@ node_modules/onnxruntime-node/bin/napi-v3/win32/**
 node_modules/onnxruntime-node/bin/napi-v3/darwin/x64/**
 .e2e/**
 .claude/**
+media/marketplace-icon.svg

@@ -1,0 +1,21 @@
+<!-- Source for media/icon.png (the Marketplace icon, which must be a PNG). Not packaged. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <rect width="256" height="256" rx="52" fill="#1f2430"/>
+  <!-- dimmed code lines -->
+  <g fill="#4b5366">
+    <rect x="44" y="50" width="150" height="14" rx="7"/>
+    <rect x="44" y="132" width="66" height="14" rx="7"/>
+    <rect x="44" y="168" width="50" height="14" rx="7"/>
+    <rect x="44" y="204" width="74" height="14" rx="7"/>
+  </g>
+  <!-- the highlighted line ShowMe is explaining -->
+  <rect x="26" y="80" width="204" height="36" rx="6" fill="#ffcc00" fill-opacity="0.2"/>
+  <rect x="26" y="80" width="6" height="36" rx="3" fill="#ffcc00"/>
+  <rect x="44" y="91" width="118" height="14" rx="7" fill="#ffd54a"/>
+  <!-- speaker -->
+  <path d="M140 156 H160 L184 136 V208 L160 188 H140 Z" fill="#ffcc00" stroke="#ffcc00" stroke-width="8" stroke-linejoin="round"/>
+  <g fill="none" stroke="#ffcc00" stroke-width="11" stroke-linecap="round">
+    <path d="M199 156 a 20 20 0 0 1 0 32"/>
+    <path d="M211 140 a 40 40 0 0 1 0 64"/>
+  </g>
+</svg>

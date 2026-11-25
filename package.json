@@ -1,11 +1,23 @@
 {
   "name": "showme",
-  "displayName": "ShowMe",
+  "displayName": "V-ShowMe",
   "description": "Narrated code walkthroughs: an AI agent opens files, highlights code and explains it out loud, step by step, like a colleague showing you around.",
   "version": "0.1.0",
-  "publisher": "v-showme",
-  "private": true,
-  "license": "UNLICENSED",
+  "publisher": "VincentFontaine",
+  "license": "MIT",
+  "icon": "media/icon.png",
+  "galleryBanner": {
+    "color": "#1f2430",
+    "theme": "dark"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ftechhelp/V-ShowMe.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ftechhelp/V-ShowMe/issues"
+  },
+  "homepage": "https://github.com/ftechhelp/V-ShowMe#readme",
   "engines": {
     "vscode": "^1.100.0"
   },
@@ -271,7 +283,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "vscode:prepublish": "node esbuild.mjs --production",
-    "package": "vsce package --target darwin-arm64 --allow-missing-repository --skip-license --no-rewrite-relative-links",
+    "package": "vsce package --target darwin-arm64",
     "e2e": "node .claude/skills/run-showme/driver.mjs"
   },
   "dependencies": {

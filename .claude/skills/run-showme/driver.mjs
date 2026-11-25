@@ -23,8 +23,8 @@ const SAMPLE_WS = path.join(E2E, 'ws');
 const STATE = path.join(E2E, 'state.json');
 const PORT = Number(process.env.SHOWME_E2E_PORT || 9333);
 const CODE_BIN = process.env.VSCODE_BIN || '/Applications/Visual Studio Code.app/Contents/MacOS/Code';
-const STORAGE = path.join(UD, 'User', 'globalStorage', 'v-showme.showme');
-const REAL_MODELS = path.join(os.homedir(), 'Library/Application Support/Code/User/globalStorage/v-showme.showme/models');
+const STORAGE = path.join(UD, 'User', 'globalStorage', 'vincentfontaine.showme');
+const REAL_MODELS = path.join(os.homedir(), 'Library/Application Support/Code/User/globalStorage/vincentfontaine.showme/models');
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const readState = () => (fs.existsSync(STATE) ? JSON.parse(fs.readFileSync(STATE, 'utf8')) : undefined);
@@ -92,7 +92,7 @@ async function withPage(fn) {
 async function inSidebar(expr) {
   const targets = await (await fetch(`http://127.0.0.1:${PORT}/json/list`)).json();
   const webviews = targets.filter((t) => t.type === 'iframe' && t.url.startsWith('vscode-webview://'));
-  const t = webviews.find((w) => /extensionId=v-showme\.showme/.test(w.url)) ?? webviews[0];
+  const t = webviews.find((w) => /extensionId=vincentfontaine\.showme/i.test(w.url)) ?? webviews[0];
   if (!t) throw new Error('ShowMe sidebar webview not found. Open it first (click the ShowMe activity bar icon, or play a tour).');
   const ws = new WebSocket(t.webSocketDebuggerUrl);
   await new Promise((resolve, reject) => {

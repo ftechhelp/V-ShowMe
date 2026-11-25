@@ -1,4 +1,4 @@
-# ShowMe
+# V-ShowMe
 
 Ask your AI agent to **show** you how something works, not just tell you. ShowMe is a VS Code extension plus an agent skill. The agent opens the right files, highlights the lines it is talking about, and explains them **out loud**, step by step, like a colleague walking you through the code at your desk.
 
@@ -19,21 +19,14 @@ You: "show me how login works"
 
 There is no server or MCP setup; the two sides talk through files in your workspace. `.showme/` creates its own `.gitignore`, so nothing there gets committed.
 
-## Setup
+## Getting started
 
-Prerequisite for development: Node 22. On this machine it is installed keg-only by Homebrew at `/opt/homebrew/opt/node@22/bin`.
+1. Install ShowMe, then run **ShowMe: Install Agent Skill (Claude Code)** from the Command Palette. It copies the `show-me` skill to `~/.claude/skills/show-me`.
+2. Ask Claude Code something like *"show me how the tour player handles pause"*.
 
-```bash
-npm install
-npm run build        # or: npm run watch
-npm test             # unit tests (schema, anchors, speech text, queue, player, demo tour)
-```
+To see it without an agent, run **ShowMe: Play Demo Tour**. It walks through ShowMe's own source.
 
-- **Try it:** press **F5** in VS Code ("Run ShowMe"), then run **ShowMe: Play Demo Tour** in the new window. It walks through ShowMe's own source.
-- **Install the skill:** run **ShowMe: Install Agent Skill (Claude Code)**. This copies `skill/show-me` to `~/.claude/skills/show-me`, or symlinks it when you run from source.
-- **Package:** `npm run package` builds a `.vsix`. Install it with **Extensions → … → Install from VSIX**.
-
-Then ask Claude Code something like *"show me how the tour player handles pause"*.
+The first time ShowMe speaks, it downloads the Kokoro voice model (about 320 MB, or about 90 MB with `showme.tts.kokoroModel` set to `q8`). Until the download finishes, it narrates with the built-in macOS voice. **ShowMe: Test Voice** checks your audio.
 
 ## Controls
 
@@ -79,7 +72,26 @@ See [skill/show-me/reference/tour-format.md](skill/show-me/reference/tour-format
 
 `anchor` is the text of the first highlighted line. If the code has moved since the agent read it, ShowMe finds the nearest match and shifts the highlight.
 
-## Code map
+## Notes
+
+- Kokoro runs in a child process using VS Code's own Node runtime (the "Code Helper (Plugin)" binary), so no system Node is needed at runtime.
+- The model downloads from Hugging Face into the extension's global storage on first use. Narration audio is cached for 14 days.
+- Platform support: the Marketplace build is for Apple Silicon Macs. From source, Linux plays audio with `paplay`/`aplay`, and Windows plays audio but pause restarts the current sentence.
+
+## Development
+
+Requires Node 22.
+
+```bash
+npm install
+npm run build        # or: npm run watch
+npm test             # unit tests (schema, anchors, speech text, queue, player, demo tour)
+```
+
+- **Run from source:** press **F5** in VS Code ("Run ShowMe"), then run **ShowMe: Play Demo Tour** in the new window. From source, **Install Agent Skill** symlinks the skill instead of copying it.
+- **Package:** `npm run package` builds an Apple Silicon `.vsix`. Install it with **Extensions → … → Install from VSIX**.
+
+### Code map
 
 | Path | What |
 |---|---|
@@ -92,9 +104,3 @@ See [skill/show-me/reference/tour-format.md](skill/show-me/reference/tour-format
 | `src/ui/` | Sidebar webview and status bar |
 | `skill/show-me/` | The agent skill (`SKILL.md` and the format reference) |
 | `examples/demo.tour.json` | Tour of this codebase (a test keeps its line numbers in sync) |
-
-## Notes
-
-- Kokoro runs in a child process using VS Code's own Node runtime (the "Code Helper (Plugin)" binary), so no system Node is needed at runtime.
-- The model downloads from Hugging Face into the extension's global storage on first use. Narration audio is cached for 14 days.
-- Platform support: macOS is the main target. Linux plays audio with `paplay`/`aplay`. Windows plays audio, but pause restarts the current sentence.
