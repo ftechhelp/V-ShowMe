@@ -1,0 +1,131 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  # onnxruntime-node's install script would otherwise swap in its CUDA build on Linux x64.
+  ONNXRUNTIME_NODE_INSTALL_CUDA: skip
+
+jobs:
+  vscode:
+    name: VS Code extension (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: linux-x64
+          - os: windows-latest
+            target: win32-x64
+          - os: macos-latest
+            target: darwin-arm64
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - name: Shared spec vectors are up to date
+        if: runner.os == 'Linux'
+        run: node scripts/update-spec.mjs --check
+
+      - name: Package the ${{ matrix.target }} VSIX
+        run: npm run package -- ${{ matrix.target }}
+
+      - name: Unzip the VSIX (macOS, Linux)
+        if: runner.os != 'Windows'
+        run: unzip -q vsix/showme-${{ matrix.target }}-*.vsix -d "$RUNNER_TEMP/vsix"
+      - name: Unzip the VSIX (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $vsix = Get-Item vsix/showme-${{ matrix.target }}-*.vsix
+          Copy-Item $vsix.FullName "$env:RUNNER_TEMP/showme.zip"
+          Expand-Archive "$env:RUNNER_TEMP/showme.zip" -DestinationPath "$env:RUNNER_TEMP/vsix"
+
+      - name: Install eSpeak NG (the Linux system voice)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y espeak-ng
+
+      - name: Cache the Kokoro model
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/models
+          key: kokoro-82m-v1.0-q8
+
+      - name: Speech smoke test (Kokoro from the packaged VSIX, system voice, Windows audio helper)
+        run: >
+          node scripts/smoke-voice.mjs
+          --extension "${{ runner.temp }}/vsix/extension"
+          --models "${{ runner.temp }}/models"
+          --dtype q8
+          ${{ runner.os == 'Linux' && '--require-system' || '' }}
+
+  package:
+    name: Package all VS Code targets
+    needs: vscode
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run package
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vscode-vsix
+          path: vsix/*.vsix
+          if-no-files-found: error
+
+  visualstudio:
+    name: Visual Studio extension
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Core tests (shared spec vectors, player, queue, status.json)
+        run: dotnet test visualstudio/test/ShowMe.Core.Tests
+
+      - name: Publish the Kokoro helper (win-x64)
+        run: dotnet publish visualstudio/src/ShowMe.KokoroHost -c Release -r win-x64 --self-contained -o visualstudio/artifacts/kokorohost-win-x64
+      - name: Cache the KokoroSharp model
+        uses: actions/cache@v4
+        with:
+          path: visualstudio/artifacts/models
+          key: kokorosharp-v2.0.0-fp16
+      - name: Kokoro helper smoke test
+        run: node visualstudio/scripts/smoke-kokoro-host.mjs visualstudio/artifacts/kokorohost-win-x64 visualstudio/artifacts/models q8
+
+      - uses: microsoft/setup-msbuild@v2
+      - name: Build the VSIX
+        run: msbuild visualstudio/src/ShowMe.VisualStudio/ShowMe.VisualStudio.csproj /restore /p:Configuration=Release /v:minimal
+      - name: VSIX size and contents
+        shell: pwsh
+        run: |
+          $vsix = Get-ChildItem visualstudio/src/ShowMe.VisualStudio/bin/Release -Recurse -Filter *.vsix | Select-Object -First 1
+          if (-not $vsix) { throw 'no VSIX was produced' }
+          "{0}: {1:N1} MB" -f $vsix.Name, ($vsix.Length / 1MB)
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          [IO.Compression.ZipFile]::OpenRead($vsix.FullName).Entries | ForEach-Object { "{0,10:N0}  {1}" -f $_.Length, $_.FullName }
+          Copy-Item $vsix.FullName "$env:RUNNER_TEMP/ShowMe.VisualStudio.vsix"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: visualstudio-vsix
+          path: ${{ runner.temp }}/ShowMe.VisualStudio.vsix
+          if-no-files-found: error

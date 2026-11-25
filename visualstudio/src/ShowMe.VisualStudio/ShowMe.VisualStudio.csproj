@@ -1,0 +1,64 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    The ShowMe extension for Visual Studio 2022 (17.10+) and 2026: in-process VSSDK, .NET Framework.
+    The VSIX build (VSCT, pkgdef, container) needs Windows. On macOS/Linux this project still
+    compiles against the reference assemblies, which is how it is checked off Windows.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <RootNamespace>ShowMe.VisualStudio</RootNamespace>
+    <AssemblyName>ShowMe.VisualStudio</AssemblyName>
+    <UseWindowsForms>false</UseWindowsForms>
+    <GeneratePkgDefFile>true</GeneratePkgDefFile>
+    <UseCodebase>true</UseCodebase>
+    <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
+    <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
+    <IncludeDebugSymbolsInLocalVSIXDeployment>true</IncludeDebugSymbolsInLocalVSIXDeployment>
+    <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
+    <CopyOutputSymbolsToOutputDirectory>true</CopyOutputSymbolsToOutputDirectory>
+    <StartAction>Program</StartAction>
+    <StartProgram Condition="'$(DevEnvDir)' != ''">$(DevEnvDir)devenv.exe</StartProgram>
+    <StartArguments>/rootsuffix Exp</StartArguments>
+    <!-- VSTHRD analyzer suggestions that don't apply to fire-and-forget UI glue. -->
+    <NoWarn>$(NoWarn);VSTHRD003;VSTHRD100;VSTHRD101;VSTHRD110;VSTHRD200;VSSDK006;VSSDK007</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Community.VisualStudio.Toolkit.17" Version="17.0.551" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.10.40171" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.14.2142" Condition="'$(OS)' == 'Windows_NT'">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="NAudio.WinMM" Version="2.2.1" />
+    <!-- Visual Studio ships System.Text.Json; use its copy. -->
+    <PackageReference Include="System.Text.Json" Version="8.0.5" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../ShowMe.Core/ShowMe.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Speech" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Design" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="source.extension.vsixmanifest" SubType="Designer" />
+    <VSCTCompile Include="ShowMePackage.vsct" ResourceName="Menus.ctmenu" Condition="'$(OS)' == 'Windows_NT'" />
+    <None Include="ShowMePackage.vsct" Condition="'$(OS)' != 'Windows_NT'" />
+    <EmbeddedResource Include="kokoro-host.json" LogicalName="ShowMe.kokoro-host.json" />
+    <Content Include="../../../media/icon.png" Link="Resources/icon.png" IncludeInVSIX="true" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../../LICENSE" Link="Resources/LICENSE.txt" IncludeInVSIX="true" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../../skill/show-me/**/*" Link="skill/show-me/%(RecursiveDir)%(Filename)%(Extension)" IncludeInVSIX="true" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

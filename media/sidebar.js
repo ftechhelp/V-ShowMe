@@ -14,6 +14,10 @@
     stop: '<svg viewBox="0 0 16 16"><path d="M3 3h10v10H3z"/></svg>',
   };
 
+  // Desktop Linux uses Ctrl+Alt+arrows to switch workspaces, so ShowMe binds , and . there.
+  const linux = /Linux/.test(navigator.userAgent) && !/Android/.test(navigator.userAgent);
+  const keys = linux ? { prev: ',', next: '.' } : { prev: '←', next: '→' };
+
   /** @param {string} s */
   function esc(s) {
     return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] || c);
@@ -66,11 +70,11 @@
 
     const controls = active
       ? `<div class="controls">
-          <button data-cmd="previous" title="Previous step (Ctrl+Alt+←)" ${s.index === 0 ? 'disabled' : ''}>${icons.prev}</button>
+          <button data-cmd="previous" title="Previous step (Ctrl+Alt+${keys.prev})" ${s.index === 0 ? 'disabled' : ''}>${icons.prev}</button>
           <button class="primary" data-cmd="togglePause" title="Pause / resume (Ctrl+Alt+Space)">${
             playing ? icons.pause + ' Pause' : s.state === 'finished' ? icons.replay + ' Again' : icons.play + (s.state === 'waiting' ? ' Next' : ' Resume')
           }</button>
-          <button data-cmd="next" title="Next step (Ctrl+Alt+→)">${icons.next}</button>
+          <button data-cmd="next" title="Next step (Ctrl+Alt+${keys.next})">${icons.next}</button>
           <button data-cmd="replay" title="Replay this step">${icons.replay}</button>
           <button data-cmd="stop" title="Stop the tour">${icons.stop}</button>
         </div>`
@@ -112,7 +116,7 @@
       ${caption}
       <div class="section-label">Steps</div>
       <ol class="steps">${steps}</ol>
-      <div class="hint"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>Space</kbd> pause · <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>←</kbd>/<kbd>→</kbd> step</div>`;
+      <div class="hint"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>Space</kbd> pause · <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>${keys.prev}</kbd>/<kbd>${keys.next}</kbd> step</div>`;
 
     const current = app.querySelector('li.current');
     if (current) current.scrollIntoView({ block: 'nearest' });

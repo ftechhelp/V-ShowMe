@@ -41,7 +41,7 @@ Steps without `narration` are skipped. Invalid `lines` keep the step but drop th
 
 ```jsonc
 {
-  "about": "Written by the ShowMe VS Code extension…",
+  "about": "Written by the ShowMe VS Code extension…",   // or "…Visual Studio extension…"
   "updatedAt": "2026-11-24T15:30:14.120Z",
   "state": "playing",            // loading | playing | paused | waiting | finished | stopped | error | idle
   "tour": { "file": ".showme/tours/20261124-153012-login-flow.json", "title": "How login works", "totalSteps": 8 },

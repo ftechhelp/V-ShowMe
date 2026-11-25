@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ShowMe commands: Tools > ShowMe, View > Other Windows > ShowMe Walkthrough, and key bindings.
+  Ctrl+Alt+Space (used in VS Code) is Edit.ToggleCompletionMode in Visual Studio, so playback uses
+  Ctrl+Shift+Alt+Space / . / , here.
+-->
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <Extern href="stdidcmd.h" />
+  <Extern href="vsshlids.h" />
+  <Include href="KnownImageIds.vsct" />
+
+  <Commands package="guidShowMePackage">
+    <Menus>
+      <Menu guid="guidShowMeCmdSet" id="ShowMeMenu" priority="0x0100" type="Menu">
+        <Parent guid="guidShowMeCmdSet" id="ToolsGroup" />
+        <Strings>
+          <ButtonText>ShowMe</ButtonText>
+        </Strings>
+      </Menu>
+    </Menus>
+
+    <Groups>
+      <Group guid="guidShowMeCmdSet" id="ToolsGroup" priority="0x0600">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS" />
+      </Group>
+      <Group guid="guidShowMeCmdSet" id="PlaybackGroup" priority="0x0100">
+        <Parent guid="guidShowMeCmdSet" id="ShowMeMenu" />
+      </Group>
+      <Group guid="guidShowMeCmdSet" id="SetupGroup" priority="0x0200">
+        <Parent guid="guidShowMeCmdSet" id="ShowMeMenu" />
+      </Group>
+    </Groups>
+
+    <Buttons>
+      <Button guid="guidShowMeCmdSet" id="OpenWalkthrough" priority="0x0100" type="Button">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1" />
+        <Icon guid="ImageCatalogGuid" id="Play" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>ShowMe Walkthrough</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidShowMeCmdSet" id="PlayTour" priority="0x0100" type="Button">
+        <Parent guid="guidShowMeCmdSet" id="PlaybackGroup" />
+        <Strings>
+          <ButtonText>Play Tour...</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidShowMeCmdSet" id="TogglePause" priority="0x0110" type="Button">
+        <Parent guid="guidShowMeCmdSet" id="PlaybackGroup" />
+        <Strings>
+          <ButtonText>Pause / Resume</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidShowMeCmdSet" id="Next" priority="0x0120" type="Button">
+        <Parent guid="guidShowMeCmdSet" id="PlaybackGroup" />
+        <Strings>
+          <ButtonText>Next Step</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidShowMeCmdSet" id="Previous" priority="0x0130" type="Button">
+        <Parent guid="guidShowMeCmdSet" id="PlaybackGroup" />
+        <Strings>
+          <ButtonText>Previous Step</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidShowMeCmdSet" id="Replay" priority="0x0140" type="Button">
+        <Parent guid="guidShowMeCmdSet" id="PlaybackGroup" />
+        <Strings>
+          <ButtonText>Replay Step</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidShowMeCmdSet" id="Stop" priority="0x0150" type="Button">
+        <Parent guid="guidShowMeCmdSet" id="PlaybackGroup" />
+        <Strings>
+          <ButtonText>Stop Tour</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidShowMeCmdSet" id="ReplayTour" priority="0x0160" type="Button">
+        <Parent guid="guidShowMeCmdSet" id="PlaybackGroup" />
+        <Strings>
+          <ButtonText>Play Last Tour Again</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidShowMeCmdSet" id="InstallSkill" priority="0x0100" type="Button">
+        <Parent guid="guidShowMeCmdSet" id="SetupGroup" />
+        <Strings>
+          <ButtonText>Install Agent Skill (Claude Code)</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidShowMeCmdSet" id="TestVoice" priority="0x0110" type="Button">
+        <Parent guid="guidShowMeCmdSet" id="SetupGroup" />
+        <Strings>
+          <ButtonText>Test Voice</ButtonText>
+        </Strings>
+      </Button>
+    </Buttons>
+  </Commands>
+
+  <CommandPlacements>
+    <CommandPlacement guid="guidShowMeCmdSet" id="OpenWalkthrough" priority="0x0050">
+      <Parent guid="guidShowMeCmdSet" id="PlaybackGroup" />
+    </CommandPlacement>
+  </CommandPlacements>
+
+  <KeyBindings>
+    <KeyBinding guid="guidShowMeCmdSet" id="TogglePause" editor="guidVSStd97" key1="VK_SPACE" mod1="Control Shift Alt" />
+    <KeyBinding guid="guidShowMeCmdSet" id="Next" editor="guidVSStd97" key1="VK_OEM_PERIOD" mod1="Control Shift Alt" />
+    <KeyBinding guid="guidShowMeCmdSet" id="Previous" editor="guidVSStd97" key1="VK_OEM_COMMA" mod1="Control Shift Alt" />
+  </KeyBindings>
+
+  <Symbols>
+    <GuidSymbol name="guidShowMePackage" value="{b130b44e-4a71-4b71-b2be-0423f302389d}" />
+    <GuidSymbol name="guidShowMeCmdSet" value="{084e358b-6c77-42ad-8e65-15904c1f6d7f}">
+      <IDSymbol name="ShowMeMenu" value="0x1000" />
+      <IDSymbol name="ToolsGroup" value="0x1010" />
+      <IDSymbol name="PlaybackGroup" value="0x1020" />
+      <IDSymbol name="SetupGroup" value="0x1030" />
+      <IDSymbol name="OpenWalkthrough" value="0x0100" />
+      <IDSymbol name="PlayTour" value="0x0101" />
+      <IDSymbol name="TogglePause" value="0x0102" />
+      <IDSymbol name="Next" value="0x0103" />
+      <IDSymbol name="Previous" value="0x0104" />
+      <IDSymbol name="Replay" value="0x0105" />
+      <IDSymbol name="Stop" value="0x0106" />
+      <IDSymbol name="ReplayTour" value="0x0107" />
+      <IDSymbol name="InstallSkill" value="0x0108" />
+      <IDSymbol name="TestVoice" value="0x0109" />
+    </GuidSymbol>
+  </Symbols>
+</CommandTable>

@@ -13,7 +13,7 @@ export async function installSkill(context: vscode.ExtensionContext): Promise<vo
 
   const existing = await fs.promises.lstat(target).catch(() => undefined);
   if (existing) {
-    const isOurLink = existing.isSymbolicLink() && (await fs.promises.readlink(target)) === source;
+    const isOurLink = existing.isSymbolicLink() && samePath(await fs.promises.readlink(target), source);
     if (isOurLink) {
       void vscode.window.showInformationMessage('ShowMe: the skill is already linked to this checkout. Nothing to do.');
       return;
@@ -29,7 +29,8 @@ export async function installSkill(context: vscode.ExtensionContext): Promise<vo
 
   await fs.promises.mkdir(skillsDir, { recursive: true });
   if (dev) {
-    await fs.promises.symlink(source, target, 'dir');
+    // A junction needs no admin rights or Developer Mode on Windows; other platforms ignore the type.
+    await fs.promises.symlink(source, target, process.platform === 'win32' ? 'junction' : 'dir');
   } else {
     await fs.promises.cp(source, target, { recursive: true });
   }
@@ -66,6 +67,14 @@ export async function pickTour(): Promise<vscode.Uri | undefined> {
     openLabel: 'Play tour',
   });
   return files?.[0];
+}
+
+function samePath(a: string, b: string): boolean {
+  const norm = (p: string) => {
+    const r = path.resolve(p.replace(/^\\\\\?\\/, '')).replace(/[\\/]+$/, '');
+    return process.platform === 'win32' ? r.toLowerCase() : r;
+  };
+  return norm(a) === norm(b);
 }
 
 function tildify(p: string): string {

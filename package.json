@@ -178,12 +178,14 @@
       {
         "command": "showme.next",
         "key": "ctrl+alt+right",
-        "when": "showme.active"
+        "when": "showme.active",
+        "linux": "ctrl+alt+."
       },
       {
         "command": "showme.previous",
         "key": "ctrl+alt+left",
-        "when": "showme.active"
+        "when": "showme.active",
+        "linux": "ctrl+alt+,"
       }
     ],
     "configuration": {
@@ -193,13 +195,15 @@
           "type": "string",
           "enum": [
             "kokoro",
-            "macos",
-            "none"
+            "system",
+            "none",
+            "macos"
           ],
           "enumDescriptions": [
-            "Kokoro-82M: natural-sounding neural voice that runs locally (one-time ~90 MB model download, then offline).",
-            "Built-in macOS `say` voices. Instant, no download. Download a Premium voice in System Settings for better quality.",
-            "No audio: captions only, advance manually or by reading time."
+            "Kokoro-82M: natural-sounding neural voice that runs locally (one-time ~90-320 MB model download, then offline).",
+            "The operating system's built-in voice: `say` on macOS, SAPI voices on Windows, eSpeak NG on Linux. Instant, no download.",
+            "No audio: captions only, advance manually or by reading time.",
+            "Old name for `system`."
           ],
           "default": "kokoro",
           "description": "Text-to-speech engine used to narrate tours."
@@ -236,10 +240,16 @@
           "default": "fp32",
           "description": "Which Kokoro model to download and run."
         },
+        "showme.tts.systemVoice": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Voice for the `system` engine, and for the fallback while Kokoro downloads. Empty = the system default.\n\n- **macOS:** a `say` voice such as `Samantha` or `Zoe (Premium)`. List them with `say -v '?'`.\n- **Windows:** an installed SAPI voice such as `Microsoft Zira Desktop`.\n- **Linux:** an eSpeak NG voice such as `en-us` or `en-gb`. List them with `espeak-ng --voices`."
+        },
         "showme.tts.macosVoice": {
           "type": "string",
           "default": "",
-          "description": "macOS voice name for the `say` engine (e.g. \"Samantha\", \"Zoe (Premium)\"). Empty = system default. Run `say -v '?'` to list voices."
+          "markdownDeprecationMessage": "Use `#showme.tts.systemVoice#` instead. This setting is still read when that one is empty.",
+          "description": "Old name for showme.tts.systemVoice."
         },
         "showme.tts.speed": {
           "type": "number",
@@ -283,7 +293,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "vscode:prepublish": "node esbuild.mjs --production",
-    "package": "vsce package --target darwin-arm64",
+    "package": "node scripts/package.mjs",
     "e2e": "node .claude/skills/run-showme/driver.mjs"
   },
   "dependencies": {

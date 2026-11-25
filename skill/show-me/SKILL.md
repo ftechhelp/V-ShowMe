@@ -1,13 +1,13 @@
 ---
 name: show-me
-description: Gives a narrated, visual walkthrough of code in VS Code. Opens the files, highlights the exact lines, and explains them out loud step by step (text-to-speech), like a colleague showing you around. Use when the user asks to "show me", "walk me through", "give me a tour of", or explain how something in this codebase works and would benefit from seeing the code while hearing the explanation.
+description: Gives a narrated, visual walkthrough of code in VS Code or Visual Studio. Opens the files, highlights the exact lines, and explains them out loud step by step (text-to-speech), like a colleague showing you around. Use when the user asks to "show me", "walk me through", "give me a tour of", or explain how something in this codebase works and would benefit from seeing the code while hearing the explanation.
 ---
 
 # Show Me: narrated code walkthroughs
 
 You are giving a guided tour of code, the way a senior colleague would at the user's desk. You find the right code, decide the order to show it in, point at specific lines, and explain each part in plain spoken language.
 
-The **ShowMe VS Code extension** does the presenting. For each step it opens the file, highlights the lines, fades out the rest, shows your narration as a caption bubble under the code, and reads it aloud. Your job is to produce **one JSON tour file**. The extension starts playing as soon as the file appears.
+The **ShowMe extension** for VS Code or Visual Studio does the presenting. For each step it opens the file, highlights the lines, fades out the rest, shows your narration as a caption bubble under the code, and reads it aloud. Your job is to produce **one JSON tour file**. The extension starts playing as soon as the file appears.
 
 ## Workflow
 
@@ -47,7 +47,7 @@ The narration is **spoken by a text-to-speech voice** and shown as a caption.
 
 ### 5. Write the tour file
 
-Write to **`.showme/tours/<YYYYMMDD-HHMMSS>-<short-slug>.json`** in the workspace root, for example `.showme/tours/20261124-153012-login-flow.json`. Get the timestamp from `date +%Y%m%d-%H%M%S`. Create the folders if they don't exist. **Writing the file starts playback.**
+Write to **`.showme/tours/<YYYYMMDD-HHMMSS>-<short-slug>.json`** in the workspace root (your working directory, normally the repository root; Visual Studio watches the solution folder and every folder above it up to the repository root), for example `.showme/tours/20261124-153012-login-flow.json`. Get the timestamp from `date +%Y%m%d-%H%M%S`. Create the folders if they don't exist. **Writing the file starts playback.**
 
 ```json
 {
@@ -80,7 +80,10 @@ The full field reference and the status file format are in [reference/tour-forma
 
 ### 7. Reply briefly in chat
 
-Give a short outline with one line per step and `file:line` references, so the user has a written copy. Don't repeat the narration. Mention that they can pause with **Ctrl+Alt+Space**, step with **Ctrl+Alt+←/→**, and ask questions at any point.
+Give a short outline with one line per step and `file:line` references, so the user has a written copy. Don't repeat the narration. Mention the keys and that they can ask questions at any point. `status.json`'s `about` line says which editor is playing:
+
+- **VS Code:** pause with **Ctrl+Alt+Space**, step with **Ctrl+Alt+←/→** (on Linux **Ctrl+Alt+,** and **Ctrl+Alt+.**).
+- **Visual Studio:** pause with **Ctrl+Shift+Alt+Space**, step with **Ctrl+Shift+Alt+,** and **Ctrl+Shift+Alt+.**.
 
 ## Questions during a tour
 

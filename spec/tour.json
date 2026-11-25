@@ -1,0 +1,603 @@
+{
+  "about": "Shared behaviour spec for parsing tour files. Inputs are hand-written; every `expect` is generated from the TypeScript implementation by `node scripts/update-spec.mjs` and checked by test/spec.test.ts and the C# ShowMe.Core tests.",
+  "parseTour": [
+    {
+      "name": "well-formed tour",
+      "json": {
+        "version": 1,
+        "title": "How login works",
+        "steps": [
+          {
+            "title": "Handler",
+            "file": "src/login.ts",
+            "lines": [
+              12,
+              18
+            ],
+            "anchor": "export function login(",
+            "narration": "Start here."
+          },
+          {
+            "narration": "Recap."
+          }
+        ]
+      },
+      "expect": {
+        "tour": {
+          "version": 1,
+          "title": "How login works",
+          "steps": [
+            {
+              "narration": "Start here.",
+              "title": "Handler",
+              "file": "src/login.ts",
+              "lines": [
+                12,
+                18
+              ],
+              "anchor": "export function login("
+            },
+            {
+              "narration": "Recap."
+            }
+          ]
+        },
+        "issues": []
+      }
+    },
+    {
+      "name": "common agent variations",
+      "json": {
+        "steps": [
+          {
+            "path": "a.ts",
+            "line": 5,
+            "description": "One line."
+          },
+          {
+            "file": "b.ts",
+            "lines": "10-20",
+            "text": "Range as string."
+          }
+        ]
+      },
+      "expect": {
+        "tour": {
+          "version": 1,
+          "title": "Code walkthrough",
+          "steps": [
+            {
+              "narration": "One line.",
+              "file": "a.ts",
+              "lines": [
+                5,
+                5
+              ]
+            },
+            {
+              "narration": "Range as string.",
+              "file": "b.ts",
+              "lines": [
+                10,
+                20
+              ]
+            }
+          ]
+        },
+        "issues": [
+          {
+            "severity": "warning",
+            "message": "Tour has no \"title\"; using \"Code walkthrough\"."
+          }
+        ]
+      }
+    },
+    {
+      "name": "step without narration is skipped",
+      "json": {
+        "title": "t",
+        "steps": [
+          {
+            "file": "a.ts"
+          },
+          {
+            "narration": "ok"
+          }
+        ]
+      },
+      "expect": {
+        "tour": {
+          "version": 1,
+          "title": "t",
+          "steps": [
+            {
+              "narration": "ok"
+            }
+          ]
+        },
+        "issues": [
+          {
+            "step": 1,
+            "severity": "error",
+            "message": "Step has no \"narration\"; skipped."
+          }
+        ]
+      }
+    },
+    {
+      "name": "bad lines keep the step without highlight",
+      "json": {
+        "title": "t",
+        "steps": [
+          {
+            "file": "a.ts",
+            "lines": [
+              9,
+              3
+            ],
+            "narration": "x"
+          }
+        ]
+      },
+      "expect": {
+        "tour": {
+          "version": 1,
+          "title": "t",
+          "steps": [
+            {
+              "narration": "x",
+              "file": "a.ts"
+            }
+          ]
+        },
+        "issues": [
+          {
+            "step": 1,
+            "severity": "warning",
+            "message": "Invalid \"lines\" ([9,3]); expected [start, end] with 1 <= start <= end. The file will open without a highlight."
+          }
+        ]
+      }
+    },
+    {
+      "name": "bad lines as a quoted string",
+      "json": {
+        "title": "t",
+        "steps": [
+          {
+            "file": "a.ts",
+            "lines": "line \"five\" é",
+            "narration": "x"
+          }
+        ]
+      },
+      "expect": {
+        "tour": {
+          "version": 1,
+          "title": "t",
+          "steps": [
+            {
+              "narration": "x",
+              "file": "a.ts"
+            }
+          ]
+        },
+        "issues": [
+          {
+            "step": 1,
+            "severity": "warning",
+            "message": "Invalid \"lines\" (\"line \\\"five\\\" é\"); expected [start, end] with 1 <= start <= end. The file will open without a highlight."
+          }
+        ]
+      }
+    },
+    {
+      "name": "fractional line",
+      "json": {
+        "title": "t",
+        "steps": [
+          {
+            "file": "a.ts",
+            "line": 1.5,
+            "narration": "x"
+          }
+        ]
+      },
+      "expect": {
+        "tour": {
+          "version": 1,
+          "title": "t",
+          "steps": [
+            {
+              "narration": "x",
+              "file": "a.ts"
+            }
+          ]
+        },
+        "issues": [
+          {
+            "step": 1,
+            "severity": "warning",
+            "message": "Invalid \"lines\" (1.5); expected [start, end] with 1 <= start <= end. The file will open without a highlight."
+          }
+        ]
+      }
+    },
+    {
+      "name": "lines without file",
+      "json": {
+        "title": "t",
+        "steps": [
+          {
+            "lines": [
+              1,
+              2
+            ],
+            "narration": "x"
+          }
+        ]
+      },
+      "expect": {
+        "tour": {
+          "version": 1,
+          "title": "t",
+          "steps": [
+            {
+              "narration": "x"
+            }
+          ]
+        },
+        "issues": [
+          {
+            "step": 1,
+            "severity": "warning",
+            "message": "\"lines\" given without \"file\"; ignored."
+          }
+        ]
+      }
+    },
+    {
+      "name": "step that is not an object",
+      "json": {
+        "title": "t",
+        "steps": [
+          "oops",
+          {
+            "narration": "ok"
+          }
+        ]
+      },
+      "expect": {
+        "tour": {
+          "version": 1,
+          "title": "t",
+          "steps": [
+            {
+              "narration": "ok"
+            }
+          ]
+        },
+        "issues": [
+          {
+            "step": 1,
+            "severity": "error",
+            "message": "Step must be an object; skipped."
+          }
+        ]
+      }
+    },
+    {
+      "name": "no playable steps",
+      "json": {
+        "title": "t",
+        "steps": [
+          {
+            "file": "a.ts"
+          }
+        ]
+      },
+      "expect": {
+        "tour": null,
+        "issues": [
+          {
+            "step": 1,
+            "severity": "error",
+            "message": "Step has no \"narration\"; skipped."
+          },
+          {
+            "severity": "error",
+            "message": "No playable steps."
+          }
+        ]
+      }
+    },
+    {
+      "name": "whitespace is trimmed and root kept",
+      "json": {
+        "title": "  Spaced  ",
+        "root": " .. ",
+        "steps": [
+          {
+            "title": " T ",
+            "file": " a.ts ",
+            "lines": "L3-L4",
+            "anchor": "  x  ",
+            "narration": "  n  "
+          }
+        ]
+      },
+      "expect": {
+        "tour": {
+          "version": 1,
+          "title": "Spaced",
+          "steps": [
+            {
+              "narration": "n",
+              "title": "T",
+              "file": "a.ts",
+              "lines": [
+                3,
+                4
+              ],
+              "anchor": "x"
+            }
+          ],
+          "root": ".."
+        },
+        "issues": []
+      }
+    },
+    {
+      "name": "blank strings count as missing",
+      "json": {
+        "title": "   ",
+        "steps": [
+          {
+            "title": "",
+            "file": "  ",
+            "narration": "n",
+            "anchor": "a"
+          }
+        ]
+      },
+      "expect": {
+        "tour": {
+          "version": 1,
+          "title": "Code walkthrough",
+          "steps": [
+            {
+              "narration": "n"
+            }
+          ]
+        },
+        "issues": [
+          {
+            "severity": "warning",
+            "message": "Tour has no \"title\"; using \"Code walkthrough\"."
+          }
+        ]
+      }
+    },
+    {
+      "name": "narration falls back to description, then text",
+      "json": {
+        "title": "t",
+        "steps": [
+          {
+            "narration": "  ",
+            "description": "",
+            "text": "from text"
+          }
+        ]
+      },
+      "expect": {
+        "tour": {
+          "version": 1,
+          "title": "t",
+          "steps": [
+            {
+              "narration": "from text"
+            }
+          ]
+        },
+        "issues": []
+      }
+    },
+    {
+      "name": "missing steps",
+      "json": {
+        "title": "t"
+      },
+      "expect": {
+        "tour": null,
+        "issues": [
+          {
+            "severity": "error",
+            "message": "Tour must have a non-empty \"steps\" array."
+          }
+        ]
+      }
+    },
+    {
+      "name": "empty steps",
+      "json": {
+        "title": "t",
+        "steps": []
+      },
+      "expect": {
+        "tour": null,
+        "issues": [
+          {
+            "severity": "error",
+            "message": "Tour must have a non-empty \"steps\" array."
+          }
+        ]
+      }
+    },
+    {
+      "name": "array instead of object",
+      "json": [],
+      "expect": {
+        "tour": null,
+        "issues": [
+          {
+            "severity": "error",
+            "message": "Tour must be a JSON object."
+          }
+        ]
+      }
+    },
+    {
+      "name": "string instead of object",
+      "json": "tour",
+      "expect": {
+        "tour": null,
+        "issues": [
+          {
+            "severity": "error",
+            "message": "Tour must be a JSON object."
+          }
+        ]
+      }
+    },
+    {
+      "name": "invalid JSON text",
+      "text": "{ nope",
+      "expect": {
+        "tour": null,
+        "issues": [
+          {
+            "severity": "error",
+            "messageStartsWith": "Tour is not valid JSON: "
+          }
+        ]
+      }
+    }
+  ],
+  "parseLines": [
+    {
+      "input": 7,
+      "expect": [
+        7,
+        7
+      ]
+    },
+    {
+      "input": [
+        7
+      ],
+      "expect": [
+        7,
+        7
+      ]
+    },
+    {
+      "input": [
+        7,
+        9
+      ],
+      "expect": [
+        7,
+        9
+      ]
+    },
+    {
+      "input": "7",
+      "expect": [
+        7,
+        7
+      ]
+    },
+    {
+      "input": "L7-L9",
+      "expect": [
+        7,
+        9
+      ]
+    },
+    {
+      "input": "l7:l9",
+      "expect": [
+        7,
+        9
+      ]
+    },
+    {
+      "input": "7–9",
+      "expect": [
+        7,
+        9
+      ]
+    },
+    {
+      "input": " 12 - 14 ",
+      "expect": [
+        12,
+        14
+      ]
+    },
+    {
+      "input": [
+        "4",
+        "6"
+      ],
+      "expect": [
+        4,
+        6
+      ]
+    },
+    {
+      "input": 0,
+      "expect": "invalid"
+    },
+    {
+      "input": [
+        5,
+        2
+      ],
+      "expect": "invalid"
+    },
+    {
+      "input": "abc",
+      "expect": "invalid"
+    },
+    {
+      "input": [
+        1,
+        2,
+        3
+      ],
+      "expect": "invalid"
+    },
+    {
+      "input": [],
+      "expect": "invalid"
+    },
+    {
+      "input": 1.5,
+      "expect": "invalid"
+    },
+    {
+      "input": "7-",
+      "expect": "invalid"
+    },
+    {
+      "input": -3,
+      "expect": "invalid"
+    },
+    {
+      "input": null,
+      "expect": null
+    },
+    {
+      "input": true,
+      "expect": "invalid"
+    },
+    {
+      "input": {
+        "start": 1
+      },
+      "expect": "invalid"
+    }
+  ]
+}
