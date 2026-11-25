@@ -1,0 +1,30 @@
+.vscode/**
+.showme/**
+test/**
+**/*.map
+**/*.test.ts
+esbuild.mjs
+tsconfig.json
+.gitignore
+*.vsix
+
+# --- Runtime pruning (the extension only uses the Node build of transformers.js) ---
+node_modules/onnxruntime-web/**
+node_modules/@huggingface/transformers/src/**
+node_modules/@huggingface/transformers/types/**
+node_modules/@huggingface/transformers/dist/*.map
+node_modules/@huggingface/transformers/dist/*.wasm
+node_modules/@huggingface/transformers/dist/*.mjs
+node_modules/@huggingface/transformers/dist/transformers.js
+node_modules/@huggingface/transformers/dist/transformers.min.js
+node_modules/@huggingface/transformers/dist/transformers.web*
+node_modules/@huggingface/transformers/dist/transformers.node.min.cjs
+node_modules/**/*.d.ts
+node_modules/**/*.md
+# Platform binaries: `npm run package` builds for Apple Silicon (darwin-arm64).
+# For another platform, remove the matching line and run `vsce package --target <platform>`.
+node_modules/onnxruntime-node/bin/napi-v3/linux/**
+node_modules/onnxruntime-node/bin/napi-v3/win32/**
+node_modules/onnxruntime-node/bin/napi-v3/darwin/x64/**
+.e2e/**
+.claude/**

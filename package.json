@@ -1,0 +1,289 @@
+{
+  "name": "showme",
+  "displayName": "ShowMe",
+  "description": "Narrated code walkthroughs: an AI agent opens files, highlights code and explains it out loud, step by step, like a colleague showing you around.",
+  "version": "0.1.0",
+  "publisher": "v-showme",
+  "private": true,
+  "license": "UNLICENSED",
+  "engines": {
+    "vscode": "^1.100.0"
+  },
+  "categories": [
+    "Education",
+    "Other"
+  ],
+  "keywords": [
+    "code tour",
+    "walkthrough",
+    "text to speech",
+    "ai",
+    "claude"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "configurationDefaults": {
+      "comments.openView": "never"
+    },
+    "colors": [
+      {
+        "id": "showme.highlightBackground",
+        "description": "Background of the lines ShowMe is currently explaining.",
+        "defaults": {
+          "dark": "#ffd5002b",
+          "light": "#ffd50042",
+          "highContrast": "#ffd50033",
+          "highContrastLight": "#ffd50042"
+        }
+      },
+      {
+        "id": "showme.highlightBorder",
+        "description": "Left border and overview-ruler mark of the lines ShowMe is currently explaining.",
+        "defaults": {
+          "dark": "#ffcc00",
+          "light": "#c99700",
+          "highContrast": "#ffcc00",
+          "highContrastLight": "#8a6700"
+        }
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "showme",
+          "title": "ShowMe",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "showme": [
+        {
+          "type": "webview",
+          "id": "showme.sidebar",
+          "name": "Walkthrough"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "showme.playTour",
+        "title": "Play Tour…",
+        "category": "ShowMe",
+        "icon": "$(play)"
+      },
+      {
+        "command": "showme.togglePause",
+        "title": "Pause / Resume",
+        "category": "ShowMe",
+        "icon": "$(debug-pause)"
+      },
+      {
+        "command": "showme.next",
+        "title": "Next Step",
+        "category": "ShowMe",
+        "icon": "$(arrow-right)"
+      },
+      {
+        "command": "showme.previous",
+        "title": "Previous Step",
+        "category": "ShowMe",
+        "icon": "$(arrow-left)"
+      },
+      {
+        "command": "showme.replay",
+        "title": "Replay Step",
+        "category": "ShowMe",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "showme.stop",
+        "title": "Stop Tour",
+        "category": "ShowMe",
+        "icon": "$(debug-stop)"
+      },
+      {
+        "command": "showme.replayTour",
+        "title": "Play Last Tour Again",
+        "category": "ShowMe"
+      },
+      {
+        "command": "showme.playDemo",
+        "title": "Play Demo Tour",
+        "category": "ShowMe"
+      },
+      {
+        "command": "showme.installSkill",
+        "title": "Install Agent Skill (Claude Code)",
+        "category": "ShowMe"
+      },
+      {
+        "command": "showme.testVoice",
+        "title": "Test Voice",
+        "category": "ShowMe"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "showme.togglePause",
+          "when": "showme.active"
+        },
+        {
+          "command": "showme.next",
+          "when": "showme.active"
+        },
+        {
+          "command": "showme.previous",
+          "when": "showme.active"
+        },
+        {
+          "command": "showme.replay",
+          "when": "showme.active"
+        },
+        {
+          "command": "showme.stop",
+          "when": "showme.active"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "showme.playTour",
+          "when": "view == showme.sidebar",
+          "group": "navigation"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "showme.togglePause",
+        "key": "ctrl+alt+space",
+        "when": "showme.active"
+      },
+      {
+        "command": "showme.next",
+        "key": "ctrl+alt+right",
+        "when": "showme.active"
+      },
+      {
+        "command": "showme.previous",
+        "key": "ctrl+alt+left",
+        "when": "showme.active"
+      }
+    ],
+    "configuration": {
+      "title": "ShowMe",
+      "properties": {
+        "showme.tts.engine": {
+          "type": "string",
+          "enum": [
+            "kokoro",
+            "macos",
+            "none"
+          ],
+          "enumDescriptions": [
+            "Kokoro-82M: natural-sounding neural voice that runs locally (one-time ~90 MB model download, then offline).",
+            "Built-in macOS `say` voices. Instant, no download. Download a Premium voice in System Settings for better quality.",
+            "No audio: captions only, advance manually or by reading time."
+          ],
+          "default": "kokoro",
+          "description": "Text-to-speech engine used to narrate tours."
+        },
+        "showme.tts.kokoroVoice": {
+          "type": "string",
+          "default": "af_heart",
+          "enum": [
+            "af_heart",
+            "af_bella",
+            "af_nicole",
+            "af_sarah",
+            "af_sky",
+            "am_michael",
+            "am_fenrir",
+            "am_puck",
+            "bf_emma",
+            "bf_isabella",
+            "bm_george",
+            "bm_fable"
+          ],
+          "description": "Kokoro voice (af/am = American female/male, bf/bm = British female/male)."
+        },
+        "showme.tts.kokoroModel": {
+          "type": "string",
+          "enum": [
+            "fp32",
+            "q8"
+          ],
+          "enumDescriptions": [
+            "Full precision: ~320 MB download, about 4x faster than real time on Apple Silicon.",
+            "Quantized: ~90 MB download, about 2x faster than real time."
+          ],
+          "default": "fp32",
+          "description": "Which Kokoro model to download and run."
+        },
+        "showme.tts.macosVoice": {
+          "type": "string",
+          "default": "",
+          "description": "macOS voice name for the `say` engine (e.g. \"Samantha\", \"Zoe (Premium)\"). Empty = system default. Run `say -v '?'` to list voices."
+        },
+        "showme.tts.speed": {
+          "type": "number",
+          "default": 1,
+          "minimum": 0.5,
+          "maximum": 2,
+          "description": "Speech speed multiplier."
+        },
+        "showme.autoAdvance": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically move to the next step when the narration finishes. When off, wait for Next."
+        },
+        "showme.pauseBetweenSteps": {
+          "type": "number",
+          "default": 600,
+          "minimum": 0,
+          "description": "Pause in milliseconds between steps, so you have a moment to look at the code."
+        },
+        "showme.dimOtherLines": {
+          "type": "boolean",
+          "default": true,
+          "description": "Fade out the lines that are not part of the current step."
+        },
+        "showme.inlineCaptions": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the narration in a bubble directly under the highlighted code."
+        },
+        "showme.autoPlayNewTours": {
+          "type": "boolean",
+          "default": true,
+          "description": "Start playing automatically when an agent writes a new tour into .showme/tours/."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "vscode:prepublish": "node esbuild.mjs --production",
+    "package": "vsce package --target darwin-arm64 --allow-missing-repository --skip-license --no-rewrite-relative-links",
+    "e2e": "node .claude/skills/run-showme/driver.mjs"
+  },
+  "dependencies": {
+    "kokoro-js": "1.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "~22.15.0",
+    "@types/vscode": "~1.100.0",
+    "@vscode/vsce": "^4.1.1",
+    "esbuild": "^0.28.2",
+    "playwright-core": "^1.56.1",
+    "typescript": "~5.9.3",
+    "vitest": "^5.1.1"
+  }
+}

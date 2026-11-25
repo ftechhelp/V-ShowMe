@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "title": "How ShowMe works",
+  "root": "..",
+  "steps": [
+    {
+      "title": "Welcome",
+      "narration": "Welcome to ShowMe! I'll walk you through how this extension works, from the moment your agent writes a tour to the voice you're hearing right now. You can pause at any time with Control, Alt, Space."
+    },
+    {
+      "title": "A new tour appears",
+      "file": "src/tour/files.ts",
+      "lines": [52, 62],
+      "anchor": "private fire(uri: vscode.Uri): void {",
+      "narration": "Everything starts with a file. When your agent writes a tour into the `.showme/tours` folder, this watcher notices it. It waits about a third of a second, so a file that's still being written is only handled once, and then hands it over to be played."
+    },
+    {
+      "title": "Reading the tour",
+      "file": "src/controller.ts",
+      "lines": [86, 101],
+      "anchor": "let parsed: ReturnType<typeof parseTourText>;",
+      "narration": "The tour is parsed leniently, because agents don't always write perfect JSON. If something is wrong, the problem is recorded instead of thrown, and it ends up in the status file, so the agent can fix the tour and try again."
+    },
+    {
+      "title": "Getting ready to play",
+      "file": "src/controller.ts",
+      "lines": [103, 117],
+      "anchor": "const tour = parsed.tour;",
+      "narration": "Before anything plays, `preflight` checks every step up front, so missing files or stale line numbers are reported right away. Then the voice gets ready, and the player starts at step one."
+    },
+    {
+      "title": "The playback loop",
+      "file": "src/player/player.ts",
+      "lines": [129, 141],
+      "anchor": "private async run(index: number, gen: number): Promise<void> {",
+      "narration": "This is the heart of playback. Each step first goes on screen through `present`. Then the narrator is told which steps come next, so audio for the rest of the tour is generated in the background, with the current step first."
+    },
+    {
+      "title": "Sentence by sentence",
+      "file": "src/player/player.ts",
+      "lines": [143, 157],
+      "anchor": "for (const clip of clips) {",
+      "narration": "Now we walk through the sentences. Each one plays as soon as its audio is ready, and the gate makes pausing work even between sentences. Notice all the `alive` checks: if you skip ahead, this older run just quietly stops."
+    },
+    {
+      "title": "Putting code on screen",
+      "file": "src/editor/presenter.ts",
+      "lines": [93, 109],
+      "anchor": "this.column ??= vscode.window.activeTextEditor?.viewColumn ?? vscode.ViewColumn.One;",
+      "narration": "Showing a step is plain VS Code. We open the document without stealing your keyboard focus, highlight the range, and fade out everything else. Short ranges are scrolled to the middle of the screen, the way a colleague would scroll to the right spot."
+    },
+    {
+      "title": "The caption bubble",
+      "file": "src/editor/presenter.ts",
+      "lines": [128, 146],
+      "anchor": "private showCaption(uri: vscode.Uri, range: vscode.Range, step: PresentableStep): void {",
+      "narration": "The bubble you're reading right now is a comment thread, the same widget used for code review comments. Replies are switched off, so it's simply a speech bubble pinned under the last highlighted line."
+    },
+    {
+      "title": "When lines drift",
+      "file": "src/tour/anchor.ts",
+      "lines": [25, 39],
+      "anchor": "const needle = anchor ? normalize(anchor.split(/\\r?\\n/).find((l) => l.trim()) ?? '') : '';",
+      "narration": "Code changes after the agent reads it, so every step carries an anchor: the text of its first line. If that text isn't where we expect, we look for the nearest match and shift the whole highlight to follow it."
+    },
+    {
+      "title": "Choosing a voice",
+      "file": "src/tts/ttsService.ts",
+      "lines": [130, 156],
+      "anchor": "private async chooseEngine(): Promise<EngineId> {",
+      "narration": "The voice is picked once per tour. If the Kokoro model is already on disk, it loads in about a second. On the very first run it downloads in the background while the built-in macOS voice fills in, so you never have to wait."
+    },
+    {
+      "title": "A neural voice, running locally",
+      "file": "src/tts/kokoroWorker.ts",
+      "lines": [34, 53],
+      "anchor": "tts = await KokoroTTS.from_pretrained(MODEL_ID, {",
+      "narration": "That voice is Kokoro, a small open source neural model that runs entirely on your machine. It lives in its own process, so it never slows down the editor. Each sentence becomes a WAV file, written under a temporary name first so a half-finished clip is never played."
+    },
+    {
+      "title": "A real pause button",
+      "file": "src/tts/audioPlayer.ts",
+      "lines": [22, 42],
+      "anchor": "pause(): void {",
+      "narration": "Pausing really freezes the voice mid-word. On macOS and Linux we send the audio process a stop signal, and resuming sends continue. Windows can't do that, so there we stop the clip and replay it when you resume."
+    },
+    {
+      "title": "Talking back to the agent",
+      "file": "src/controller.ts",
+      "lines": [238, 262],
+      "anchor": "private agentStatus(snap: ViewSnapshot): unknown {",
+      "narration": "Finally, the extension reports back. Every change is written to `status.json`: which step you're on, which lines are highlighted, and any problems. Your agent reads it to fix broken tours, and to know what you mean when you pause and ask, why is this here?"
+    },
+    {
+      "title": "Recap",
+      "narration": "So, that's the whole loop. The agent writes a tour, the extension checks it, shows each step with a highlight and a caption, and speaks it with a local voice, while reporting back so the agent can follow along. Now try it yourself: ask your agent to show you something in your own code."
+    }
+  ]
+}

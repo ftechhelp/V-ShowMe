@@ -1,0 +1,8 @@
+node_modules/
+dist/
+*.vsix
+.showme/
+.DS_Store
+
+# e2e driver state (isolated VS Code profile, screenshots)
+.e2e/

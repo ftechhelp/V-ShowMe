@@ -1,0 +1,8 @@
+{
+  "title": "Broken on purpose",
+  "steps": [
+    { "title": "Missing file", "file": "src/nope.js", "lines": [1, 2], "narration": "This file does not exist." },
+    { "title": "Bad anchor", "file": "src/cart.js", "lines": [2, 3], "anchor": "this text is nowhere", "narration": "This anchor matches nothing." },
+    { "file": "src/cart.js", "lines": [1, 1] }
+  ]
+}

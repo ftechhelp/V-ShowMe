@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "title": "How the cart computes a total",
+  "steps": [
+    {
+      "title": "Adding items",
+      "file": "src/cart.js",
+      "lines": [4, 12],
+      "anchor": "export function addItem(cart, item, quantity = 1) {",
+      "narration": "Let's start with `addItem`. If the product is already in the cart, we just bump its quantity. Otherwise it gets pushed as a new line."
+    },
+    {
+      "title": "The total (stale lines on purpose)",
+      "file": "src/cart.js",
+      "lines": [16, 19],
+      "anchor": "export function total(cart) {",
+      "narration": "Now `total`. It takes the subtotal, subtracts the coupon discount if there is one, and adds tax on top."
+    },
+    {
+      "title": "Recap",
+      "narration": "So: items in, subtotal, discount, then tax. That's the whole cart."
+    }
+  ]
+}
