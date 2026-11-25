@@ -59,11 +59,20 @@
     <VSCTCompile Include="ShowMePackage.vsct" ResourceName="Menus.ctmenu" Condition="'$(OS)' == 'Windows_NT'" />
     <None Include="ShowMePackage.vsct" Condition="'$(OS)' != 'Windows_NT'" />
     <EmbeddedResource Include="kokoro-host.json" LogicalName="ShowMe.kokoro-host.json" />
-    <!-- Backslashes in Link: the VSIX checks the paths in source.extension.vsixmanifest literally (VSSDK1310). -->
+    <!--
+      A linked file goes into the VSIX folder named by its Link but keeps its own file name, so
+      LICENSE is copied to LICENSE.txt first (ShowMeLicense below) to match the manifest.
+    -->
     <Content Include="..\..\..\media\icon.png" Link="Resources\icon.png" IncludeInVSIX="true" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="..\..\..\LICENSE" Link="Resources\LICENSE.txt" IncludeInVSIX="true" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\..\..\skill\show-me\**\*" Link="skill\show-me\%(RecursiveDir)%(Filename)%(Extension)" IncludeInVSIX="true" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
+
+  <Target Name="ShowMeLicense" BeforeTargets="BeforeBuild">
+    <Copy SourceFiles="..\..\..\LICENSE" DestinationFiles="$(IntermediateOutputPath)LICENSE.txt" SkipUnchangedFiles="true" />
+    <ItemGroup>
+      <Content Include="$(IntermediateOutputPath)LICENSE.txt" Link="Resources\LICENSE.txt" IncludeInVSIX="true" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
 
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
   <!--
