@@ -59,9 +59,10 @@
     <VSCTCompile Include="ShowMePackage.vsct" ResourceName="Menus.ctmenu" Condition="'$(OS)' == 'Windows_NT'" />
     <None Include="ShowMePackage.vsct" Condition="'$(OS)' != 'Windows_NT'" />
     <EmbeddedResource Include="kokoro-host.json" LogicalName="ShowMe.kokoro-host.json" />
-    <Content Include="../../../media/icon.png" Link="Resources/icon.png" IncludeInVSIX="true" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="../../../LICENSE" Link="Resources/LICENSE.txt" IncludeInVSIX="true" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="../../../skill/show-me/**/*" Link="skill/show-me/%(RecursiveDir)%(Filename)%(Extension)" IncludeInVSIX="true" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Backslashes in Link: the VSIX checks the paths in source.extension.vsixmanifest literally (VSSDK1310). -->
+    <Content Include="..\..\..\media\icon.png" Link="Resources\icon.png" IncludeInVSIX="true" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\..\LICENSE" Link="Resources\LICENSE.txt" IncludeInVSIX="true" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\..\skill\show-me\**\*" Link="skill\show-me\%(RecursiveDir)%(Filename)%(Extension)" IncludeInVSIX="true" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
