@@ -2,9 +2,10 @@ name: CI
 
 on:
   push:
-    branches: [main]
   pull_request:
   workflow_dispatch:
+
+# Pushes to branches in this repo run CI; pull_request runs are only for forks (see each job's `if`).
 
 env:
   # onnxruntime-node's install script would otherwise swap in its CUDA build on Linux x64.
@@ -13,6 +14,7 @@ env:
 jobs:
   vscode:
     name: VS Code extension (${{ matrix.target }})
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -71,6 +73,7 @@ jobs:
 
   package:
     name: Package all VS Code targets
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
     needs: vscode
     runs-on: ubuntu-latest
     steps:
@@ -89,6 +92,7 @@ jobs:
 
   visualstudio:
     name: Visual Studio extension
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v5
