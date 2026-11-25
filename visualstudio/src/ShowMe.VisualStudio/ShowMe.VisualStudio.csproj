@@ -1,4 +1,6 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project>
+  <!-- Explicit SDK imports so the VSSDK targets can be imported after the SDK's own (see the end). -->
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
   <!--
     The ShowMe extension for Visual Studio 2022 (17.10+) and 2026: in-process VSSDK, .NET Framework.
     The VSIX build (VSCT, pkgdef, container) needs Windows. On macOS/Linux this project still
@@ -61,4 +63,11 @@
     <Content Include="../../../LICENSE" Link="Resources/LICENSE.txt" IncludeInVSIX="true" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="../../../skill/show-me/**/*" Link="skill/show-me/%(RecursiveDir)%(Filename)%(Extension)" IncludeInVSIX="true" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
+
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+  <!--
+    The Microsoft.VSSDK.BuildTools package only sets VSToolsPath; the VSIX targets (VSCT, pkgdef,
+    CreateVsixContainer) must be imported by the project, after the C# targets.
+  -->
+  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(OS)' == 'Windows_NT' and Exists('$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets')" />
 </Project>

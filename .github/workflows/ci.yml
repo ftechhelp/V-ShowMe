@@ -118,7 +118,7 @@ jobs:
 
       - uses: microsoft/setup-msbuild@v2
       - name: Build the VSIX
-        run: msbuild visualstudio/src/ShowMe.VisualStudio/ShowMe.VisualStudio.csproj /restore /p:Configuration=Release /v:minimal
+        run: msbuild visualstudio/src/ShowMe.VisualStudio/ShowMe.VisualStudio.csproj /restore /p:Configuration=Release /p:DeployExtension=false /v:minimal
       - name: VSIX size and contents
         shell: pwsh
         run: |
