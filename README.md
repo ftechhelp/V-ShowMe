@@ -22,14 +22,31 @@ There is no server or MCP setup; the two sides talk through files in your worksp
 
 ## Getting started
 
-1. Install ShowMe, then run **ShowMe: Install Agent Skill (Claude Code)** from the Command Palette. It copies the `show-me` skill to `~/.claude/skills/show-me`.
-2. Ask Claude Code something like *"show me how the tour player handles pause"*.
+1. Install ShowMe, then run **ShowMe: Install Agent Skill** from the Command Palette. Choose your agent and whether to install the skill personally or in the open project.
+2. Ask your agent something like *"show me how the tour player handles pause"*.
 
 To see it without an agent, run **ShowMe: Play Demo Tour**. It walks through ShowMe's own source.
 
 The first time ShowMe speaks, it downloads the Kokoro voice model (about 320 MB, or about 90 MB with `showme.tts.kokoroModel` set to `q8`). Until the download finishes, it narrates with your system's built-in voice. **ShowMe: Test Voice** checks your audio.
 
 For Visual Studio, see [Visual Studio (preview)](#visual-studio-preview).
+
+### Agent skill locations
+
+The installer supports GitHub Copilot, Claude Code, OpenAI Codex, OpenCode, Cursor and Gemini CLI. The **Shared agents directory** option installs once for compatible versions of Copilot, Codex, OpenCode, Cursor and Gemini CLI; Claude Code uses its own directory. The complete skill, including its reference, is copied. Existing installations are replaced only after confirmation.
+
+| Agent | Personal (under your home directory) | Project (under the project root) |
+|---|---|---|
+| GitHub Copilot | `.copilot/skills/show-me` | `.github/skills/show-me` |
+| Claude Code | `.claude/skills/show-me` | `.claude/skills/show-me` |
+| OpenAI Codex / shared | `.agents/skills/show-me` | `.agents/skills/show-me` |
+| OpenCode | `.config/opencode/skills/show-me` | `.opencode/skills/show-me` |
+| Cursor | `.cursor/skills/show-me` | `.cursor/skills/show-me` |
+| Gemini CLI | `.gemini/skills/show-me` | `.gemini/skills/show-me` |
+
+Project installations can be committed and shared with a team; personal installations stay on the machine where the extension runs. In VS Code, choose the workspace folder when more than one is open; in Visual Studio, the project location is the repository root, or the solution/open folder if it is not in a repository. For remote development, install where the agent runs. Restart the agent or start a new session if it does not immediately discover the skill. Avoid installing multiple copies in locations the same agent scans: duplicate skills may appear.
+
+You can also install manually without an extension: copy the entire [`skill/show-me`](skill/show-me/) directory to one of the locations above, keeping `SKILL.md` and `reference/` together. For other harnesses that support the Agent Skills format, use their documented skills directory.
 
 ## Controls
 
@@ -97,9 +114,9 @@ Without a fallback voice, ShowMe shows captions until Kokoro is ready. Without a
 
 ## Visual Studio (preview)
 
-Install `ShowMe.VisualStudio.vsix` (see [Development](#development)), then open a solution or folder. ShowMe watches `.showme/tours/` in the solution folder and in every folder above it up to the repository root, because that is usually where Claude Code runs.
+Install `ShowMe.VisualStudio.vsix` (see [Development](#development)), then open a solution or folder. ShowMe watches `.showme/tours/` in the solution folder and in every folder above it up to the repository root, where agents often run.
 
-- **Tools → ShowMe** has the commands, including **Install Agent Skill (Claude Code)**. **View → Other Windows → ShowMe Walkthrough** shows the steps.
+- **Tools → ShowMe** has the commands, including **Install Agent Skill**. **View → Other Windows → ShowMe Walkthrough** shows the steps.
 - **Keys:** `Ctrl+Alt+Space` is taken in Visual Studio, so use `Ctrl+Shift+Alt+Space` to pause or resume and `Ctrl+Shift+Alt+.` / `Ctrl+Shift+Alt+,` to step.
 - **Settings:** Tools → Options → ShowMe, with the same options as in VS Code.
 - **Voice:** the first time, ShowMe downloads a Kokoro helper (about 110 MB, from this repository's GitHub releases, verified by SHA-256) plus the model (about 325 MB, or 165 MB with the small model). Until then it speaks with the Windows voice.
@@ -121,7 +138,7 @@ npm run build        # or: npm run watch
 npm test             # unit tests (schema, anchors, speech text, queue, player, platform audio, shared spec, demo tour)
 ```
 
-- **Run from source:** press **F5** in VS Code ("Run ShowMe"), then run **ShowMe: Play Demo Tour** in the new window. From source, **Install Agent Skill** symlinks the skill instead of copying it.
+- **Run from source:** press **F5** in VS Code ("Run ShowMe"), then run **ShowMe: Play Demo Tour** in the new window. From source, personal skill installations are symlinked; project installations are copied so they can be shared.
 - **Package:** `npm run package` builds one `.vsix` per platform into `vsix/`. `npm run package -- win32-x64` builds just one. Install it with **Extensions → … → Install from VSIX**.
 - **Speech smoke test:** `node scripts/smoke-voice.mjs --extension <unzipped VSIX>/extension --models <dir>` runs Kokoro and the system voice the way CI does on each OS.
 

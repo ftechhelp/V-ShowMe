@@ -85,7 +85,7 @@
       <Button guid="guidShowMeCmdSet" id="InstallSkill" priority="0x0100" type="Button">
         <Parent guid="guidShowMeCmdSet" id="SetupGroup" />
         <Strings>
-          <ButtonText>Install Agent Skill (Claude Code)</ButtonText>
+          <ButtonText>Install Agent Skill</ButtonText>
         </Strings>
       </Button>
       <Button guid="guidShowMeCmdSet" id="TestVoice" priority="0x0110" type="Button">

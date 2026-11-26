@@ -5,8 +5,10 @@ using System.Threading.Tasks;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
 using ShowMe.Core.Playback;
+using ShowMe.Core.Skills;
 using ShowMe.Core.Status;
 using ShowMe.VisualStudio.UI;
+using ShowMe.VisualStudio.Workspace;
 
 namespace ShowMe.VisualStudio;
 
@@ -35,24 +37,34 @@ internal static class Commands
         if (dialog.ShowDialog() == true) await package.Controller.PlayFileAsync(dialog.FileName);
     }
 
-    /// <summary>Copies the bundled show-me skill to ~/.claude/skills/show-me.</summary>
     public static async Task InstallSkillAsync()
     {
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-        var source = Path.Combine(Path.GetDirectoryName(typeof(ShowMePackage).Assembly.Location)!, "skill", "show-me");
-        var target = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".claude", "skills", "show-me");
-        if (!Directory.Exists(source))
+        var dialog = new InstallSkillDialog();
+        if (dialog.ShowDialog() != true) return;
+        try
         {
-            await VS.MessageBox.ShowErrorAsync("ShowMe", $"The bundled skill is missing from {source}.");
-            return;
+            var root = dialog.Project
+                ? WorkspaceRoots.Primary(await WorkspaceRoots.CurrentAsync())
+                : Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            if (string.IsNullOrEmpty(root))
+            {
+                await VS.MessageBox.ShowErrorAsync("ShowMe", "Open a solution or folder before installing a project skill.");
+                return;
+            }
+            var source = Path.Combine(Path.GetDirectoryName(typeof(ShowMePackage).Assembly.Location)!, "skill", "show-me");
+            var target = SkillInstaller.Destination(root!, dialog.Target, dialog.Project);
+            if (Directory.Exists(target) || File.Exists(target))
+            {
+                if (!await VS.MessageBox.ShowConfirmAsync("ShowMe", $"A \"show-me\" skill already exists at {target}. Replace it with the version bundled in this extension?")) return;
+            }
+            SkillInstaller.Install(source, target);
+            await VS.MessageBox.ShowAsync("ShowMe", $"Skill installed at {target}. Ask your agent: \"show me how … works\".");
         }
-        if (Directory.Exists(target))
+        catch (Exception ex)
         {
-            if (!await VS.MessageBox.ShowConfirmAsync("ShowMe", $"A \"show-me\" skill already exists at {target}. Replace it with the version bundled in this extension?")) return;
-            Directory.Delete(target, recursive: true);
+            await VS.MessageBox.ShowErrorAsync("ShowMe", $"Could not install the skill: {ex.Message}");
         }
-        CopyDirectory(source, target);
-        await VS.MessageBox.ShowAsync("ShowMe", $"Skill installed at {target}. In Claude Code, ask: \"show me how … works\" (or type /show-me).");
     }
 
     public static async Task TestVoiceAsync(ShowMePackage package)
@@ -70,13 +82,6 @@ internal static class Commands
         {
             await VS.MessageBox.ShowErrorAsync("ShowMe", $"Voice test failed: {ex.Message}");
         }
-    }
-
-    private static void CopyDirectory(string source, string target)
-    {
-        Directory.CreateDirectory(target);
-        foreach (var file in Directory.GetFiles(source)) File.Copy(file, Path.Combine(target, Path.GetFileName(file)), overwrite: true);
-        foreach (var dir in Directory.GetDirectories(source)) CopyDirectory(dir, Path.Combine(target, Path.GetFileName(dir)));
     }
 }
 
