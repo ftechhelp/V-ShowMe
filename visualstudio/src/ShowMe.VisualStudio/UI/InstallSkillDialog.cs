@@ -20,8 +20,10 @@ internal sealed class InstallSkillDialog : DialogWindow
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         var panel = new StackPanel { Margin = new Thickness(16) };
         panel.Children.Add(new TextBlock { Text = "Agent", Margin = new Thickness(0, 0, 0, 4) });
+        System.Windows.Automation.AutomationProperties.SetName(_target, "Agent");
         panel.Children.Add(_target);
         panel.Children.Add(new TextBlock { Text = "Scope", Margin = new Thickness(0, 12, 0, 4) });
+        System.Windows.Automation.AutomationProperties.SetName(_scope, "Scope");
         panel.Children.Add(_scope);
         var buttons = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 16, 0, 0) };
         var install = new Button { Content = "Install", IsDefault = true, MinWidth = 75, Margin = new Thickness(0, 0, 8, 0) };
