@@ -41,7 +41,7 @@ internal static class Commands
     {
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         var dialog = new InstallSkillDialog();
-        if (dialog.ShowDialog() != true) return;
+        if (dialog.ShowModal() != true) return;
         try
         {
             var root = dialog.Project
