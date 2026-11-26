@@ -66,23 +66,23 @@
     {
       "title": "Choosing a voice",
       "file": "src/tts/ttsService.ts",
-      "lines": [130, 156],
-      "anchor": "private async chooseEngine(): Promise<EngineId> {",
-      "narration": "The voice is picked once per tour. If the Kokoro model is already on disk, it loads in about a second. On the very first run it downloads in the background while the built-in macOS voice fills in, so you never have to wait."
+      "lines": [145, 169],
+      "anchor": "const fallback: EngineId = systemVoice() ? 'system' : 'none';",
+      "narration": "The voice is picked once per tour. If the Kokoro model is already on disk, it loads in about a second. On the very first run it downloads in the background while your operating system's own voice fills in, so you never have to wait."
     },
     {
       "title": "A neural voice, running locally",
       "file": "src/tts/kokoroWorker.ts",
-      "lines": [34, 53],
+      "lines": [36, 55],
       "anchor": "tts = await KokoroTTS.from_pretrained(MODEL_ID, {",
       "narration": "That voice is Kokoro, a small open source neural model that runs entirely on your machine. It lives in its own process, so it never slows down the editor. Each sentence becomes a WAV file, written under a temporary name first so a half-finished clip is never played."
     },
     {
       "title": "A real pause button",
       "file": "src/tts/audioPlayer.ts",
-      "lines": [22, 42],
+      "lines": [84, 93],
       "anchor": "pause(): void {",
-      "narration": "Pausing really freezes the voice mid-word. On macOS and Linux we send the audio process a stop signal, and resuming sends continue. Windows can't do that, so there we stop the clip and replay it when you resume."
+      "narration": "Pausing really freezes the voice mid-word. On macOS and Linux we send the audio process a stop signal, and resuming sends continue. Windows has no such signal, so there a small helper process plays the clips through the Windows media API, which can pause too."
     },
     {
       "title": "Talking back to the agent",

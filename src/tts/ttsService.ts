@@ -2,7 +2,7 @@
  * Chooses a speech engine per tour, turns narration into cached audio clips, and implements the
  * player's Narrator interface (clips + prefetch).
  *
- * Engines: Kokoro (local neural, default) → macOS `say` (fallback) → none (captions only).
+ * Engines: Kokoro (local neural, default) → the OS's own voice (fallback) → none (captions only).
  */
 import { createHash } from 'crypto';
 import * as fs from 'fs';
@@ -10,11 +10,12 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import type { Narrator } from '../player/player';
 import { KokoroDtype, KokoroEngine } from './kokoro';
-import { SAY_AVAILABLE, sayToFile } from './macSay';
+import { audioOutputAvailable, audioOutputHint } from './audioPlayer';
+import { SystemVoice, systemVoice } from './systemVoice';
 import { readingTimeMs, splitSentences, toSpeech } from './normalize';
 import { SpeechQueue } from './speechQueue';
 
-export type EngineId = 'kokoro' | 'macos' | 'none';
+export type EngineId = 'kokoro' | 'system' | 'none';
 
 interface ClipParams {
   engine: Exclude<EngineId, 'none'>;
@@ -40,6 +41,7 @@ export class TtsService implements Narrator, vscode.Disposable {
   private download: Thenable<void> | undefined;
   private downloadPct: number | undefined;
   private warnedFallback = false;
+  private warnedNoAudio = false;
   private readonly disposables: vscode.Disposable[] = [];
 
   constructor(
@@ -75,8 +77,10 @@ export class TtsService implements Narrator, vscode.Disposable {
     switch (this.engine) {
       case 'kokoro':
         return `Kokoro · ${voice}`;
-      case 'macos':
-        return `macOS voice${cfg<string>('tts.macosVoice') ? ` · ${cfg<string>('tts.macosVoice')}` : ''}${downloading}`;
+      case 'system': {
+        const v = systemVoiceSetting();
+        return `${systemVoice()?.label ?? 'System voice'}${v ? ` · ${v}` : ''}${downloading}`;
+      }
       default:
         return `Captions only${downloading}`;
     }
@@ -128,9 +132,18 @@ export class TtsService implements Narrator, vscode.Disposable {
   }
 
   private async chooseEngine(): Promise<EngineId> {
-    const wanted = cfg<EngineId>('tts.engine');
+    const wanted = engineSetting();
     if (wanted === 'none') return 'none';
-    if (wanted === 'macos') return SAY_AVAILABLE ? 'macos' : 'none';
+    if (!audioOutputAvailable()) {
+      if (!this.warnedNoAudio) {
+        this.warnedNoAudio = true;
+        this.log(`[tts] no audio player found; captions only`);
+        void vscode.window.showWarningMessage(`ShowMe: no audio player found, so tours show captions only. ${audioOutputHint()}`);
+      }
+      return 'none';
+    }
+    const fallback: EngineId = systemVoice() ? 'system' : 'none';
+    if (wanted === 'system') return fallback;
 
     const dtype = kokoroDtype();
     if (this.kokoro.isReady() || this.kokoro.isModelCached(dtype)) {
@@ -139,20 +152,20 @@ export class TtsService implements Narrator, vscode.Disposable {
         return 'kokoro';
       } catch (err) {
         this.reportKokoroFailure(err);
-        return SAY_AVAILABLE ? 'macos' : 'none';
+        return fallback;
       }
     }
 
     // First run: download the model in the background and narrate with the fallback meanwhile.
     this.startDownload(dtype);
-    if (SAY_AVAILABLE) {
+    if (fallback === 'system') {
       if (!this.warnedFallback) {
         this.warnedFallback = true;
         void vscode.window.showInformationMessage(
-          'ShowMe: using the built-in macOS voice while the Kokoro voice model downloads (one time only).',
+          `ShowMe: using the built-in ${systemVoice()!.label} while the Kokoro voice model downloads (one time only).`,
         );
       }
-      return 'macos';
+      return 'system';
     }
     try {
       await this.download;
@@ -199,7 +212,7 @@ export class TtsService implements Narrator, vscode.Disposable {
     this.log(`[tts] Kokoro unavailable: ${message}`);
     void vscode.window
       .showWarningMessage(
-        `ShowMe: the Kokoro voice could not start${SAY_AVAILABLE ? ', using the macOS voice instead' : ''}. See the ShowMe output for details.`,
+        `ShowMe: the Kokoro voice could not start${systemVoice() ? `, using the ${systemVoice()!.label} instead` : ''}. See the ShowMe output for details.`,
         'Show Output',
       )
       .then((choice) => {
@@ -211,7 +224,7 @@ export class TtsService implements Narrator, vscode.Disposable {
     const engine = this.engine as ClipParams['engine'];
     const params: ClipParams = {
       engine,
-      voice: engine === 'kokoro' ? cfg<string>('tts.kokoroVoice') : cfg<string>('tts.macosVoice'),
+      voice: engine === 'kokoro' ? cfg<string>('tts.kokoroVoice') : systemVoiceSetting(),
       speed: cfg<number>('tts.speed'),
       dtype: kokoroDtype(),
       text,
@@ -234,23 +247,38 @@ export class TtsService implements Narrator, vscode.Disposable {
         await this.kokoro.synthesize(p.text, p.voice, p.speed, file, p.dtype);
         return file;
       } catch (err) {
-        if (!SAY_AVAILABLE) throw err;
-        this.log(`[tts] Kokoro failed for one clip, falling back to say: ${(err as Error).message}`);
-        const fallback = path.join(this.audioDir, `${key}.fallback.aiff`);
-        await sayToFile(p.text, fallback, cfg<string>('tts.macosVoice'), p.speed);
+        const sys = systemVoice();
+        if (!sys) throw err;
+        this.log(`[tts] Kokoro failed for one clip, falling back to the ${sys.label}: ${(err as Error).message}`);
+        const fallback = path.join(this.audioDir, `${key}.fallback.${sys.extension}`);
+        await sys.speakToFile(p.text, fallback, systemVoiceSetting(), p.speed);
         return fallback;
       }
     }
 
-    const file = path.join(this.audioDir, `${key}.aiff`);
+    const sys: SystemVoice | undefined = systemVoice();
+    if (!sys) throw new Error('no system voice on this platform');
+    const file = path.join(this.audioDir, `${key}.${sys.extension}`);
     if (await exists(file)) return file;
-    await sayToFile(p.text, file, p.voice, p.speed);
+    await sys.speakToFile(p.text, file, p.voice, p.speed);
     return file;
   }
 }
 
 function cfg<T>(key: string): T {
   return vscode.workspace.getConfiguration('showme').get<T>(key) as T;
+}
+
+/** `macos` is the pre-0.2 name of `system`. */
+function engineSetting(): EngineId {
+  const v = cfg<string>('tts.engine');
+  if (v === 'macos') return 'system';
+  return v === 'system' || v === 'none' ? v : 'kokoro';
+}
+
+/** `tts.macosVoice` is the pre-0.2 name of `tts.systemVoice`. */
+function systemVoiceSetting(): string {
+  return cfg<string>('tts.systemVoice') || cfg<string>('tts.macosVoice') || '';
 }
 
 function kokoroDtype(): KokoroDtype {

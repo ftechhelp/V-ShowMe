@@ -1,0 +1,50 @@
+name: Kokoro helper release
+
+# Builds the Visual Studio extension's Kokoro helper (visualstudio/src/ShowMe.KokoroHost) for
+# win-x64 and win-arm64 and publishes it as the GitHub release "kokoro-host-v<version>". The
+# extension downloads it on first use and checks it against the SHA-256 pinned in
+# visualstudio/src/ShowMe.VisualStudio/kokoro-host.json. After a run, copy the hashes from the
+# job summary into that file.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Helper version (the "version" field in kokoro-host.json)
+        required: true
+        default: "1"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Publish and zip
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          foreach ($rid in 'win-x64', 'win-arm64') {
+            dotnet publish visualstudio/src/ShowMe.KokoroHost -c Release -r $rid --self-contained -p:DebugType=none -o "publish/$rid"
+            if ($LASTEXITCODE -ne 0) { throw "publish $rid failed" }
+            Compress-Archive -Path "publish/$rid/*" -DestinationPath "dist/ShowMe.KokoroHost-$rid.zip" -CompressionLevel Optimal
+          }
+          "## Kokoro helper v${{ inputs.version }}" >> $env:GITHUB_STEP_SUMMARY
+          "Paste into visualstudio/src/ShowMe.VisualStudio/kokoro-host.json:" >> $env:GITHUB_STEP_SUMMARY
+          '```' >> $env:GITHUB_STEP_SUMMARY
+          Get-ChildItem dist/*.zip | ForEach-Object {
+            $hash = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            "{0}  {1}  ({2:N1} MB)" -f $hash, $_.Name, ($_.Length / 1MB) | Tee-Object -Append -FilePath $env:GITHUB_STEP_SUMMARY
+          }
+          '```' >> $env:GITHUB_STEP_SUMMARY
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "kokoro-host-v${{ inputs.version }}" dist/*.zip --title "Kokoro helper v${{ inputs.version }} (Visual Studio)" --notes "Kokoro-82M helper for the ShowMe Visual Studio extension. Downloaded automatically on first use; you don't need to install this by hand."

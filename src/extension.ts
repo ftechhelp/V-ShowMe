@@ -14,7 +14,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
   const presenter = new Presenter(vscode.Uri.joinPath(context.extensionUri, 'media', 'avatar.svg'));
   const tts = new TtsService(context, log, () => output.show(true));
-  const audio = new AudioPlayer();
+  const audio = new AudioPlayer(log);
   const controller = new Controller(presenter, tts, audio, new StatusWriter(log), log);
   const statusBar = new StatusBar();
 
@@ -47,7 +47,7 @@ export function activate(context: vscode.ExtensionContext): void {
     controller,
     statusBar,
     watcher,
-    { dispose: () => audio.stop() },
+    audio,
     vscode.window.registerWebviewViewProvider(SidebarProvider.viewId, sidebar, {
       webviewOptions: { retainContextWhenHidden: true },
     }),

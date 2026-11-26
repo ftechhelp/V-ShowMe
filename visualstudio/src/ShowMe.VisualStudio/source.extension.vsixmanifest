@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
+  <Metadata>
+    <Identity Id="VincentFontaine.ShowMe.VisualStudio" Version="0.1.0" Language="en-US" Publisher="Vincent Fontaine" />
+    <DisplayName>V-ShowMe</DisplayName>
+    <Description xml:space="preserve">Narrated code walkthroughs: an AI agent opens files, highlights code and explains it out loud, step by step, like a colleague showing you around. Preview.</Description>
+    <MoreInfo>https://github.com/ftechhelp/V-ShowMe</MoreInfo>
+    <License>Resources\LICENSE.txt</License>
+    <Icon>Resources\icon.png</Icon>
+    <PreviewImage>Resources\icon.png</PreviewImage>
+    <Tags>code tour, walkthrough, text to speech, ai, claude</Tags>
+    <Preview>true</Preview>
+  </Metadata>
+  <Installation>
+    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.10,19.0)">
+      <ProductArchitecture>amd64</ProductArchitecture>
+    </InstallationTarget>
+    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.10,19.0)">
+      <ProductArchitecture>arm64</ProductArchitecture>
+    </InstallationTarget>
+  </Installation>
+  <Prerequisites>
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.0,19.0)" DisplayName="Visual Studio core editor" />
+  </Prerequisites>
+  <Assets>
+    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
+  </Assets>
+</PackageManifest>

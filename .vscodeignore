@@ -21,11 +21,17 @@ node_modules/@huggingface/transformers/dist/transformers.web*
 node_modules/@huggingface/transformers/dist/transformers.node.min.cjs
 node_modules/**/*.d.ts
 node_modules/**/*.md
-# Platform binaries: `npm run package` builds for Apple Silicon (darwin-arm64).
-# For another platform, remove the matching line and run `vsce package --target <platform>`.
-node_modules/onnxruntime-node/bin/napi-v3/linux/**
-node_modules/onnxruntime-node/bin/napi-v3/win32/**
-node_modules/onnxruntime-node/bin/napi-v3/darwin/x64/**
+# sharp is only for image models. The Kokoro worker stubs it out (see kokoroWorker.ts), so its
+# per-platform native binaries stay out of every VSIX.
+node_modules/sharp/**
+node_modules/@img/**
+# onnxruntime-node binaries for the other platforms are excluded per target by scripts/package.mjs.
 .e2e/**
 .claude/**
+.github/**
+scripts/**
+src/**
+spec/**
+visualstudio/**
+vsix/**
 media/marketplace-icon.svg

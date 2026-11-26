@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Kokoro-82M for the Visual Studio extension, in its own process (like dist/kokoroWorker.js in
+    VS Code), so model loading and inference never block or bloat devenv.exe.
+    Published self-contained for win-x64 and win-arm64; builds and runs on macOS/Linux too, which
+    is how it is tested off Windows.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <RollForward>LatestMajor</RollForward>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="KokoroSharp.CPU" Version="0.8.5" />
+  </ItemGroup>
+
+  <!-- The voices ShowMe offers (same list as the VS Code setting). KokoroSharp ships 61. -->
+  <ItemGroup>
+    <ShowMeVoice Include="af_heart;af_bella;af_nicole;af_sarah;af_sky;am_michael;am_fenrir;am_puck;bf_emma;bf_isabella;bm_george;bm_fable" />
+  </ItemGroup>
+  <Target Name="ShowMePublishVoices" AfterTargets="Publish">
+    <ItemGroup>
+      <_ShowMeVoiceFile Include="@(ShowMeVoice->'$(NuGetPackageRoot)kokorosharp/0.8.5/content/voices/%(Identity).npy')" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_ShowMeVoiceFile)" DestinationFolder="$(PublishDir)voices" />
+  </Target>
+</Project>

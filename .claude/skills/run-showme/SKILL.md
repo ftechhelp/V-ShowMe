@@ -18,18 +18,18 @@ npm run e2e -- status
 npm run e2e -- stop
 ```
 
-**Before launching with sound, tell the user.** `--engine kokoro` (the default) and `--engine macos` speak **out loud** through their speakers. Use `--engine none` (captions only, steps advance by reading time) for silent runs. With Kokoro, the driver reuses the model that the user's installed ShowMe already downloaded. `--fresh-model` starts with an empty model folder to test the first-run download plus macOS fallback (about 320 MB, or about 90 MB with q8).
+**Before launching with sound, tell the user.** `--engine kokoro` (the default) and `--engine system` speak **out loud** through their speakers. Use `--engine none` (captions only, steps advance by reading time) for silent runs. With Kokoro, the driver reuses the model that the user's installed ShowMe already downloaded. `--fresh-model` starts with an empty model folder to test the first-run download plus system-voice fallback (about 320 MB, or about 90 MB with q8).
 
 ## Prerequisites
 
-- macOS with VS Code at `/Applications/Visual Studio Code.app`. Override the binary with `VSCODE_BIN`.
+- VS Code at its default install path: `/Applications/Visual Studio Code.app` on macOS, `%LOCALAPPDATA%\Programs\Microsoft VS Code` on Windows, `/usr/share/code` on Linux. Override the binary with `VSCODE_BIN`. The driver has only been run on macOS.
 - `npm install`. This provides `playwright-core`, which is only used to attach over CDP; no browsers are downloaded.
 
 ## Commands
 
 | Command | What it does |
 |---|---|
-| `launch [--engine kokoro\|macos\|none] [--workspace <dir>] [--fresh-model] [--no-build]` | Runs `npm run build`, copies `fixtures/sample-ws` to `.e2e/ws` (unless `--workspace`), launches, waits for `[showme] activated` |
+| `launch [--engine kokoro\|system\|none] [--workspace <dir>] [--fresh-model] [--no-build]` | Runs `npm run build`, copies `fixtures/sample-ws` to `.e2e/ws` (unless `--workspace`), launches, waits for `[showme] activated` |
 | `stop` | Kills **only** the instance we launched (checks its `--user-data-dir`) |
 | `tour [file.json]` | Copies a tour into `<ws>/.showme/tours/` the way an agent would, waits 2.5 s, prints status. The default is `fixtures/cart.tour.json`; also try `fixtures/broken.tour.json` |
 | `status` | Summary of `<ws>/.showme/status.json`: state, step, `lines` vs `shownLines`, issues |

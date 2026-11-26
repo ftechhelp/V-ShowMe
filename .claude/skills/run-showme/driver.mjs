@@ -22,9 +22,22 @@ const SHOTS = path.join(E2E, 'shots');
 const SAMPLE_WS = path.join(E2E, 'ws');
 const STATE = path.join(E2E, 'state.json');
 const PORT = Number(process.env.SHOWME_E2E_PORT || 9333);
-const CODE_BIN = process.env.VSCODE_BIN || '/Applications/Visual Studio Code.app/Contents/MacOS/Code';
+const CODE_BIN = process.env.VSCODE_BIN || defaultCodeBin();
 const STORAGE = path.join(UD, 'User', 'globalStorage', 'vincentfontaine.showme');
-const REAL_MODELS = path.join(os.homedir(), 'Library/Application Support/Code/User/globalStorage/vincentfontaine.showme/models');
+const REAL_MODELS = path.join(userCodeDir(), 'User', 'globalStorage', 'vincentfontaine.showme', 'models');
+
+function defaultCodeBin() {
+  if (process.platform === 'win32') return path.join(process.env.LOCALAPPDATA ?? '', 'Programs', 'Microsoft VS Code', 'Code.exe');
+  if (process.platform === 'linux') return '/usr/share/code/code';
+  return '/Applications/Visual Studio Code.app/Contents/MacOS/Code';
+}
+
+/** The user's own VS Code data folder, where an installed ShowMe keeps its downloaded model. */
+function userCodeDir() {
+  if (process.platform === 'win32') return path.join(process.env.APPDATA ?? '', 'Code');
+  if (process.platform === 'linux') return path.join(process.env.XDG_CONFIG_HOME ?? path.join(os.homedir(), '.config'), 'Code');
+  return path.join(os.homedir(), 'Library', 'Application Support', 'Code');
+}
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const readState = () => (fs.existsSync(STATE) ? JSON.parse(fs.readFileSync(STATE, 'utf8')) : undefined);
@@ -46,7 +59,11 @@ function bool(args, name) {
 /** True if `pid` is the isolated VS Code we launched (never touch the user's own instance). */
 function isOurs(pid) {
   try {
-    return execFileSync('ps', ['-o', 'command=', '-p', String(pid)], { encoding: 'utf8' }).includes(`--user-data-dir=${UD}`);
+    const commandLine =
+      process.platform === 'win32'
+        ? execFileSync('powershell.exe', ['-NoProfile', '-Command', `(Get-CimInstance Win32_Process -Filter "ProcessId=${Number(pid)}").CommandLine`], { encoding: 'utf8' })
+        : execFileSync('ps', ['-o', 'command=', '-p', String(pid)], { encoding: 'utf8' });
+    return commandLine.includes(`--user-data-dir=${UD}`);
   } catch {
     return false;
   }
@@ -154,7 +171,7 @@ const COMMANDS = {
     const freshModel = bool(args, '--fresh-model');
     const skipBuild = bool(args, '--no-build');
 
-    if (!skipBuild) execFileSync('npm', ['run', 'build'], { cwd: REPO, stdio: 'inherit' });
+    if (!skipBuild) execFileSync('npm', ['run', 'build'], { cwd: REPO, stdio: 'inherit', shell: process.platform === 'win32' });
 
     fs.mkdirSync(path.join(UD, 'User'), { recursive: true });
     fs.mkdirSync(EXT, { recursive: true });
@@ -330,7 +347,7 @@ const COMMANDS = {
 
   help() {
     console.log(`ShowMe e2e driver. Commands:
-  launch [--engine kokoro|macos|none] [--workspace <dir>] [--fresh-model] [--no-build]
+  launch [--engine kokoro|system|none] [--workspace <dir>] [--fresh-model] [--no-build]
   stop                       close the isolated VS Code
   tour [file.json]           write a tour into the workspace (default: fixtures/cart.tour.json), print status
   status                     summary of .showme/status.json

@@ -6,6 +6,8 @@
  */
 import { rename } from 'fs/promises';
 
+stubOutSharp();
+
 export type WorkerRequest =
   | { type: 'init'; cacheDir: string; dtype: 'fp32' | 'q8' }
   | { type: 'synth'; id: number; text: string; voice: string; speed: number; outFile: string };
@@ -65,3 +67,20 @@ process.on('message', (msg: WorkerRequest) => {
 });
 
 process.on('disconnect', () => process.exit(0));
+
+/**
+ * transformers.js runs `require('sharp')` as soon as it loads, for image models. sharp ships a
+ * native binary per platform, and ShowMe never processes images, so the VSIX leaves sharp out.
+ * Answer that require with a stub. It must be truthy: transformers only picks its Node image code
+ * path (which is never called for speech) when `sharp` is set, and throws otherwise.
+ */
+function stubOutSharp(): void {
+  const Module = require('module') as { _load: (request: string, ...rest: unknown[]) => unknown };
+  const load = Module._load;
+  const sharp = () => {
+    throw new Error('Image processing is not available in ShowMe.');
+  };
+  Module._load = function (this: unknown, request: string, ...rest: unknown[]) {
+    return request === 'sharp' ? sharp : load.call(this, request, ...rest);
+  };
+}

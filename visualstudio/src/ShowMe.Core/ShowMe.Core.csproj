@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Everything in ShowMe that doesn't depend on Visual Studio: the tour format, anchors, speech
+    text, the synthesis queue, the playback state machine and status.json. A port of the
+    TypeScript in ../../../src, kept in step by the shared vectors in ../../../spec.
+    netstandard2.0 so the in-process VS extension (.NET Framework 4.8) can use it.
+  -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>ShowMe.Core</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- 8.x: Visual Studio 2022 17.10+ and 2026 ship this assembly version or newer, so the extension uses theirs. -->
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+  </ItemGroup>
+</Project>
