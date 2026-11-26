@@ -145,7 +145,7 @@ internal sealed class WalkthroughControl : UserControl
         }
         var buttons = new WrapPanel();
         buttons.Children.Add(Button("Play Tour…", "playTour", "Pick a saved tour", true));
-        buttons.Children.Add(Button("Install Agent Skill", "installSkill", "Copy the show-me skill to ~/.claude/skills", true));
+        buttons.Children.Add(Button("Install Agent Skill", "installSkill", "Install the show-me skill for your agent", true));
         buttons.Children.Add(Button("Test Voice", "testVoice", "Say a test sentence", true));
         _root.Children.Add(buttons);
     }

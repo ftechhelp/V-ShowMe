@@ -3,42 +3,62 @@ import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { listTours } from './tour/files';
+import { existingSkill, installSkillFiles, skillTargets } from './skill';
 
-/** Copies (or, when developing ShowMe itself, symlinks) the bundled skill into ~/.claude/skills. */
 export async function installSkill(context: vscode.ExtensionContext): Promise<void> {
-  const source = context.asAbsolutePath(path.join('skill', 'show-me'));
-  const skillsDir = path.join(os.homedir(), '.claude', 'skills');
-  const target = path.join(skillsDir, 'show-me');
-  const dev = context.extensionMode === vscode.ExtensionMode.Development;
-
-  const existing = await fs.promises.lstat(target).catch(() => undefined);
-  if (existing) {
-    const isOurLink = existing.isSymbolicLink() && samePath(await fs.promises.readlink(target), source);
-    if (isOurLink) {
-      void vscode.window.showInformationMessage('ShowMe: the skill is already linked to this checkout. Nothing to do.');
+  const harness = await vscode.window.showQuickPick(skillTargets.map((item) => ({
+    label: item.label,
+    description: item.label === 'Shared agents directory' ? 'Copilot, Codex, OpenCode, Cursor and Gemini CLI' : undefined,
+    target: item,
+  })), { title: 'ShowMe: choose an agent', placeHolder: 'Choose where the skill will be discovered' });
+  if (!harness) return;
+  const scope = await vscode.window.showQuickPick([
+    { label: 'Personal', description: 'Available across projects on this machine', project: false },
+    { label: 'Project', description: 'Copy into an open workspace folder', project: true },
+  ], { title: 'ShowMe: choose skill scope' });
+  if (!scope) return;
+  let root = os.homedir();
+  if (scope.project) {
+    const folders = vscode.workspace.workspaceFolders ?? [];
+    if (!folders.length) {
+      void vscode.window.showErrorMessage('ShowMe: open a workspace folder to install a project skill.');
       return;
     }
-    const choice = await vscode.window.showWarningMessage(
-      `A "show-me" skill already exists at ${tildify(target)}. Replace it with the version bundled in this extension?`,
-      { modal: true },
-      'Replace',
+    const folder = folders.length === 1 ? folders[0] : await vscode.window.showWorkspaceFolderPick({
+      placeHolder: 'Choose the project folder for the skill',
+    });
+    if (!folder) return;
+    if (folder.uri.scheme !== 'file') {
+      void vscode.window.showErrorMessage('ShowMe: installing a skill requires a local workspace folder.');
+      return;
+    }
+    root = folder.uri.fsPath;
+  }
+
+  const source = context.asAbsolutePath(path.join('skill', 'show-me'));
+  const target = path.join(root, scope.project ? harness.target.project : harness.target.personal, 'show-me');
+  const link = !scope.project && context.extensionMode === vscode.ExtensionMode.Development;
+  try {
+    const existing = await existingSkill(target);
+    if (existing) {
+      if (link && existing.isSymbolicLink() && samePath(path.resolve(path.dirname(target), await fs.promises.readlink(target)), source)) {
+        void vscode.window.showInformationMessage('ShowMe: the skill is already linked to this checkout. Nothing to do.');
+        return;
+      }
+      const choice = await vscode.window.showWarningMessage(
+        `A "show-me" skill already exists at ${tildify(target)}. Replace it with the version bundled in this extension?`,
+        { modal: true },
+        'Replace',
+      );
+      if (choice !== 'Replace') return;
+    }
+    await installSkillFiles(source, target, link);
+    void vscode.window.showInformationMessage(
+      `ShowMe: skill ${link ? 'linked' : 'installed'} at ${tildify(target)}. Ask your agent: "show me how … works".`,
     );
-    if (choice !== 'Replace') return;
-    await fs.promises.rm(target, { recursive: true, force: true });
+  } catch (error) {
+    void vscode.window.showErrorMessage(`ShowMe: could not install the skill: ${(error as Error).message}`);
   }
-
-  await fs.promises.mkdir(skillsDir, { recursive: true });
-  if (dev) {
-    // A junction needs no admin rights or Developer Mode on Windows; other platforms ignore the type.
-    await fs.promises.symlink(source, target, process.platform === 'win32' ? 'junction' : 'dir');
-  } else {
-    await fs.promises.cp(source, target, { recursive: true });
-  }
-
-  const how = dev ? 'linked (edits in this repo apply immediately)' : 'installed';
-  void vscode.window.showInformationMessage(
-    `ShowMe: skill ${how} at ${tildify(target)}. In Claude Code, ask: "show me how … works" (or type /show-me).`,
-  );
 }
 
 /** Quick pick of saved tours, newest first, plus a file browser fallback. */

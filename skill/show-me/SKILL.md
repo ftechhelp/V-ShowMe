@@ -13,7 +13,7 @@ The **ShowMe extension** for VS Code or Visual Studio does the presenting. For e
 
 ### 1. Understand before you show
 
-- Trace the real code path with Grep, Glob and Read, from the entry point through the calls that matter. Don't build a tour from guesses about the code.
+- Use your available search and file-reading tools to trace the real code path from the entry point through the calls that matter. Don't build a tour from guesses about the code.
 - If the request is ambiguous, pick the most useful interpretation and say which one you picked in the first step. Ask only if you really can't choose.
 
 ### 2. Plan the story
@@ -29,7 +29,7 @@ The **ShowMe extension** for VS Code or Visual Studio does the presenting. For e
 
 ### 3. Get line numbers exactly right
 
-- Take line numbers **from your Read output**, which is 1-based. Never estimate them. If anything edited the file during this session, read it again first.
+- Take 1-based line numbers from the file or your tool output. Never estimate them. If anything edited the file during this session, read it again first.
 - `lines` is `[start, end]`, inclusive. Use a single number for one line.
 - `anchor` is the exact text of the **first highlighted line**, trimmed. A distinctive part of it is fine. If the file changes, the extension uses it to find the range again. Always include it.
 - `file` is relative to the workspace root (the folder that contains `.showme/`) and uses forward slashes.

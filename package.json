@@ -129,7 +129,7 @@
       },
       {
         "command": "showme.installSkill",
-        "title": "Install Agent Skill (Claude Code)",
+        "title": "Install Agent Skill",
         "category": "ShowMe"
       },
       {
